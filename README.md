@@ -406,3 +406,66 @@ computed:{
 </div>
 ```
 
+## 防抖和节流
+
+用防抖和节流在lodash里的函数
+
+防抖：前面所有的触发都被取消，最后一次执行在规定时间之后才会触发，也就是说快速连续的触发只会执行一次
+
+节流：在规定的时间内不会重复触发回调，只有大于这个时间才会触发回调，把频繁触发变为少量触发
+
+先引入  (Vue脚手架依赖里面默认有lodash直接引入就好了)
+
+~~~
+全部引入就是 import _ from 'lodash'
+~~~
+
+部分引入
+
+~~~
+import throttle from 'lodash/throttle'（这是引入节流）
+~~~
+
+后面使用
+
+~~~
+changeIndex:throttle(function(){console.log("66")  },50),
+把事件写成对象形式，传参可以在后面function里面跟的  
+~~~
+
+## 三级联动跳转配置
+
++ 节点有一个属性dataset属性，可以获取节点的自定义属性和属性值
+
++ 自定义属性的时候在前面加上data-才能被dataset函数获取
+
+  ~~~
+  DOMStringMap {vC0fac93a: '', categroyname: '服饰内衣', categroy1id: '9'}
+  ~~~
+
++ ~~~
+  getSearch(event){
+    //获取到当前节点
+    let element=event.target
+    //解构对象//注意dataset里面都是小写 所以这边解构赋值都是小写
+    let {categroyname,categroy1id,categroy2id,categroy3id} =element.dataset
+    //如果你有这个属性，就接着下面的的操作
+    if(categroyname){
+      //传递参数
+      let location={name:'search'}
+      let query={categroyName:categroyname}//获取categroy
+      if(categroy1id){
+        //获取id
+        query.categroy1Id=categroy1id
+      }else if(categroy2id){
+        query.categroy2Id=categroy2id
+      }else if(categroy3id){
+        query.categroy3Id=categroy3id
+      }
+      //传参
+      location.query=query
+      this.$router.push(location)
+  }
+  }
+  ~~~
+
