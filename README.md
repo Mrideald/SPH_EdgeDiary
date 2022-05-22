@@ -469,3 +469,26 @@ changeIndex:throttle(function(){console.log("66")  },50),
   }
   ~~~
 
+## 过渡动画
+
+【Vue】transition让你的v-if和v-show有个美美的过渡与动画(有v-show和v-if才可以使用过渡动画)
+
+> ~~~
+> <transition name="sort">
+> <div class="sort" v-show="show">
+> </div>
+> </transition>
+>  
+> //过渡动画样式
+> .sort-enter{
+> height: 0;
+> }
+> .sort-enter-to {
+> height: 461px;
+> }
+> .sort-enter-active{
+> overflow: hidden;
+> transition:all 0.5s linear;
+> }
+> ~~~
+
