@@ -52,8 +52,12 @@ data() {
 },
 methods:{
     getSearch(){
-        this.$router.push({name:'search',params:{keyword:this.keyword},query:{k:this.keyword.toUpperCase()}},()=>{},()=>{}
-        )
+     let loction={name:'search',params:{keyword:this.keyword}}
+     //如果有query参数也要一并传递过去
+      if(this.$route.query){
+         loction.query=this.$route.query
+      }
+      this.$router.push(loction)
     }
 }
 }

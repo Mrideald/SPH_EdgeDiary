@@ -20,7 +20,7 @@ const originReplace=VueRouter.prototype.replace;
 //不同点：call和apply传递参数：call用逗号隔开，apply方法执行，传递数组
 //重写push
 VueRouter.prototype.push=function(location,resolve,reject){
-    
+
  if(resolve||reject){
      originRouter.call(this,location,resolve,reject)
  }else{
@@ -55,7 +55,7 @@ routes:[
 },
 {
     name:'search',
-    path:'/search/:keyword?',
+    path:'/search/:keyword?',//parmers参数占位
     component:Search,
     meta:{showFoot:true},
     props:true

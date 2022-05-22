@@ -100,7 +100,11 @@ export default {
         }
         //传参
         location.query = query;
+       //如果路由跳转的时候有params参数也要一并带走过去
+        if(this.$route.params){
+          location.params=this.$route.params
         this.$router.push(location);
+      }
       }
     },
     //进入全部商品分类时
@@ -115,9 +119,7 @@ export default {
       }
     },
   },
-  //组件挂载完毕可以向服务器发请求
   mounted() {
-    this.$store.dispatch("home/categroyList");
     if (this.$route.path != "/home") this.show = false;
   },
 };

@@ -14,6 +14,11 @@ export default {
   name: 'App',
   components: {
      Header,Footer
+  },
+  mounted(){
+    //获取三级联动二级列表数据
+     //组件挂载完毕可以向服务器发请求避免重复发请求
+    this.$store.dispatch("home/categroyList");
   }
 }
 </script>

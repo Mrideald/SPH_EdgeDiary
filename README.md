@@ -492,3 +492,24 @@ changeIndex:throttle(function(){console.log("66")  },50),
 > }
 > ~~~
 
+## 合并参数
+
+~~~
+getSearch(){
+let loction={name:'search',params:{keyword:this.keyword}}
+//如果有query参数也要一并传递过去
+if(this.$route.query){
+ loction.query=this.$route.query
+}
+this.$router.push(loction)
+}
+
+
+
+//如果路由跳转的时候有params参数也要一并带走过去
+if(this.$route.params){
+  location.params=this.$route.params
+this.$router.push(location);
+}
+~~~
+
