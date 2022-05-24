@@ -513,3 +513,84 @@ this.$router.push(location);
 }
 ~~~
 
+## mock.js模拟数据
+
+下载`npm i mockjs`(注意没有.)
+
+1. 在项目中src文件夹中创建mock文件夹
+2. 第二步准备JSON数据（mock文件夹中创建相应的JSON文件）–格式化一下别留有空格不然跑不起来
+3. 把mock数据需要的图片放置到public文件夹中(写一个images文件夹)，public文件夹在打包的时候，会把相应的资源原封不动的打包到dist
+4. 第四步开始mock，通过mock.js模块实现
+5. mockSever.js文件在入口文件中引入（至少需要执行一次，才能模拟数据）
+
+2..json
+
+~~~
+创建一个.json文件 写一些数据
+banner.json文件：：
+[
+  {
+    "id": "1",
+    "imgUrl": "/images/banner1.jpg"
+  },
+  {
+    "id": "2",
+    "imgUrl": "/images/banner2.jpg"
+  },
+  {
+    "id": "3",
+    "imgUrl": "/images/banner3.jpg"
+  },
+  {
+    "id": "4",
+    "imgUrl": "/images/banner4.jpg"
+  }
+]
+~~~
+
+4.mockSever.js
+
+~~~
+//引入mock
+import Mock from 'mockjs'
+//引入JSON数据
+//JSON数据格式根本没有对外暴露但是可以引入
+//webpack默认对外暴露的：图片  JSON数据格式
+import banner from './banners.json'
+import floor from './floors.json'
+
+//mock数据：第一个参数是请求地址  第二个参数是请求数据
+Mock.mock("/mock/banner",{code:200,data:banner});//模拟首页大轮播图的数据
+Mock.mock("/mock/floor",{code:200,data:floor})
+~~~
+
+5.
+
+~~~
+//引入mockjs模拟数据
+import './mock/mockSever'
+~~~
+
+
+
+### 写api
+
+1. 把之前写的axios二次封装复制一边  改下名字
+
+2. 把基础路径改为`baseURL:'/mock'`
+
+3. 写请求函数（在index.js）
+
+   ~~~
+   //引入mock api
+   import mockRequests from "./mockAjax"
+   
+   export const reqBannerList=()=>{
+       return mockRequests.get("/banner")
+   }
+   ~~~
+
+   
+
+### 再去像之前那样通过vuex发请求好了
+

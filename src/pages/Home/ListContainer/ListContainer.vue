@@ -91,8 +91,20 @@
 </template>
 
 <script>
+import { mapState } from 'vuex';
 export default {
   name: "ListContainer",
+  computed:{
+    ...mapState({
+      //对象写法：右侧需要的是一个函数，当使用这个计算属性的时候右侧函数会执行一次
+      //下面这个state即为大仓库里的state
+      bannerList: (state) => state.home.bannerList,
+    })
+  },
+  mounted(){
+    //派发action 通知vuex发起Ajax请求把数据存在仓库中
+    this.$store.dispatch('home/getBannerList')
+  }
 };
 </script>
 
