@@ -594,3 +594,71 @@ import './mock/mockSever'
 
 ### 再去像之前那样通过vuex发请求好了
 
+## 实现Banner的轮播图（swiper的使用）
+
+swiper使用:
+
+1. 下载 npm i swiper
+2. 引包（相应的js和css）
+3. 页面中结构务必要有
+4. new swiper实例
+5.  [swiper使用指南](https://www.swiper.com.cn/usage/index.html)
+
+### 在Vue使用
+
+> 哪要用就在那引入，多个要用且样式一致可以在main.js引入
+
+## 轮播图问题
+
+轮播图数据是用Ajax请求向服务器获取的，获取途中会有一系列操作
+
+首先如果把轮播图swiper放在mounted里面的话，组件挂载完毕后执行顺序是
+
+首先执行mounted  其次再向服务器获取数据 然后初始化swiper  再修改仓库中服务器带来的数据
+
+这种情况下仓库数据没更新之前swiper已经初始化，但是要使swiper有效果必须已经有了**相应的数据以及结构**才会有效果，所以这边会有一个差值
+
+
+
+解决方法：swiper实例代码可以写在update（）里面
+
+第二个就是写在mounted里面然后写个定时器写swiper实例代码
+
+**但是这俩个都有问题**
+
+>  最好的解决方法：watch+$nextTick
+
+**为什么单单用watch不行**:因为watch监听到数据以及发生变化了但是还没有渲染到结构上（v-for不知道执行没有），所以数据结构还是不完整
+
+~~~
+watch: {
+    bannerList: {
+      handler() {
+        this.$nextTick(() => {
+        //注意：从Swiper7开始，容器默认类名由'.swiper-container'变更为'.swiper'。
+        //这边使用的是swiper5，所以容器默认类名还是.swiper-container
+          new Swiper(".swiper-container", {
+            //循环
+            loop: true,
+            // 如果需要分页器
+            pagination: {
+              el: ".swiper-pagination",
+              //点小点可以实现切换
+              clickable :true,
+            },
+            // 如果需要前进后退按钮
+            navigation: {
+              nextEl: ".swiper-button-next",
+              prevEl: ".swiper-button-prev",
+            },
+            // 如果需要滚动条
+            scrollbar: {
+              el: ".swiper-scrollbar",
+            },
+          });
+        });
+      },
+    },
+  },
+~~~
+

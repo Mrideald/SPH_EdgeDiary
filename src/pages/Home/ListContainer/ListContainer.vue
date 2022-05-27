@@ -5,8 +5,12 @@
         <!--banner轮播-->
         <div class="swiper-container" id="mySwiper">
           <div class="swiper-wrapper">
-            <div class="swiper-slide">
-              <img src="./images/banner1.jpg" />
+            <div
+              class="swiper-slide swiper"
+              v-for="carousel in bannerList"
+              :key="carousel.id"
+            >
+              <img :src="carousel.imgUrl" />
             </div>
           </div>
           <!-- 如果需要分页器 -->
@@ -91,20 +95,48 @@
 </template>
 
 <script>
-import { mapState } from 'vuex';
+import Swiper from "swiper";
+import { mapState } from "vuex";
 export default {
   name: "ListContainer",
-  computed:{
+  computed: {
     ...mapState({
       //对象写法：右侧需要的是一个函数，当使用这个计算属性的时候右侧函数会执行一次
       //下面这个state即为大仓库里的state
       bannerList: (state) => state.home.bannerList,
-    })
+    }),
   },
-  mounted(){
+  mounted() {
     //派发action 通知vuex发起Ajax请求把数据存在仓库中
-    this.$store.dispatch('home/getBannerList')
-  }
+    this.$store.dispatch("home/getBannerList");
+  },
+  watch: {
+    bannerList: {
+      handler() {
+        this.$nextTick(() => {
+          new Swiper(".swiper-container", {
+            //循环
+            loop: true,
+            // 如果需要分页器
+            pagination: {
+              el: ".swiper-pagination",
+              //点小点可以实现切换
+              clickable :true,
+            },
+            // 如果需要前进后退按钮
+            navigation: {
+              nextEl: ".swiper-button-next",
+              prevEl: ".swiper-button-prev",
+            },
+            // 如果需要滚动条
+            scrollbar: {
+              el: ".swiper-scrollbar",
+            },
+          });
+        });
+      },
+    },
+  },
 };
 </script>
 
