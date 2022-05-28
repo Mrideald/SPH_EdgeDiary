@@ -114,7 +114,8 @@ export default {
     bannerList: {
       handler() {
         this.$nextTick(() => {
-          new Swiper(".swiper-container", {
+          new Swiper(".swiper-container",
+           {
             //循环
             loop: true,
             // 如果需要分页器

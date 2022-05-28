@@ -2,6 +2,7 @@
 //引入请求
 import {reqCategoryList} from '/src/api/index'
 import { reqBannerList } from '/src/api/index';
+import {reqFloorList} from '/src/api/index'
 const actions={
 async categroyList(context){
   const result =await reqCategoryList();
@@ -14,6 +15,12 @@ async categroyList(context){
     if(result.code==200){
     context.commit('BANNERLIST',result.data)
     }
+ },
+ async floorList(context){
+  const result =await reqFloorList()
+  if(result.code==200){
+      context.commit('FLOORLIST',result.data)
+  }
  }
 }
 const mutations={
@@ -24,12 +31,17 @@ const mutations={
     },
     BANNERLIST(state,bannerList){
         state.bannerList=bannerList
+    },
+    FLOORLIST(state,floorList){
+     state.floorList=floorList
     }
 }
 const state={
     categroyList:[],
     //轮播图数据
-    bannerList:[]
+    bannerList:[],
+    //楼层数据
+    floorList:[]
 }
 const getters={
 

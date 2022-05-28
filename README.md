@@ -30,7 +30,7 @@
 
 第二种就是配置路由元信息
 
-```
+```vue
 routes:[
 {
     path:'/home',
@@ -265,7 +265,7 @@ start（）进度条开始  done()进度条结束
 
 ### 模块化vuex
 
-```
+```javascript
 //大仓库
 import Vue from 'vue'
 import Vuex from 'vuex'
@@ -443,7 +443,7 @@ changeIndex:throttle(function(){console.log("66")  },50),
   DOMStringMap {vC0fac93a: '', categroyname: '服饰内衣', categroy1id: '9'}
   ~~~
 
-+ ~~~
++ ~~~javascript
   getSearch(event){
     //获取到当前节点
     let element=event.target
@@ -494,7 +494,7 @@ changeIndex:throttle(function(){console.log("66")  },50),
 
 ## 合并参数
 
-~~~
+~~~javascript
 getSearch(){
 let loction={name:'search',params:{keyword:this.keyword}}
 //如果有query参数也要一并传递过去
@@ -525,7 +525,7 @@ this.$router.push(location);
 
 2..json
 
-~~~
+~~~json
 创建一个.json文件 写一些数据
 banner.json文件：：
 [
@@ -581,7 +581,7 @@ import './mock/mockSever'
 
 3. 写请求函数（在index.js）
 
-   ~~~
+   ~~~javascript
    //引入mock api
    import mockRequests from "./mockAjax"
    
@@ -630,7 +630,7 @@ swiper使用:
 
 **为什么单单用watch不行**:因为watch监听到数据以及发生变化了但是还没有渲染到结构上（v-for不知道执行没有），所以数据结构还是不完整
 
-~~~
+~~~javascript
 watch: {
     bannerList: {
       handler() {
@@ -660,5 +660,46 @@ watch: {
       },
     },
   },
+~~~
+
+## 组件间通信的方式有哪些
+
+1. props：用于父子组件通信
+2. 自定义事件：@on @emit 可以实现子给父通信
+3. 全局事件总线：$bus 全能
+4. 插槽
+5. vuex
+6. pubsub-js:vue当中几乎不用
+
+## 实现floor的轮播图并且数据展示
+
+​    <FloorContainer v-for="floor in floorList" :key="floor.id" :list="floor" />
+
+父组件直接用props给子组件传数据
+
+~~~javascript
+//因为此处参数父组件已经传过来了不会再是异步获取了，所以不必使用watch监听和$nextTick
+  mounted() {
+    new Swiper(".swiper-container", {
+      //循环
+      loop: true,
+      // 如果需要分页器
+      pagination: {
+        el: ".swiper-pagination",
+        //点小点可以实现切换
+        clickable: true,
+      },
+      // 如果需要前进后退按钮
+      navigation: {
+        nextEl: ".swiper-button-next",
+        prevEl: ".swiper-button-prev",
+      },
+      // 如果需要滚动条
+      scrollbar: {
+        el: ".swiper-scrollbar",
+      },
+    });
+  },
+  props: ["list"],
 ~~~
 
