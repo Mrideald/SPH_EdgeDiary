@@ -703,3 +703,71 @@ watch: {
   props: ["list"],
 ~~~
 
+## 共用组件
+
+> 把首页中的轮播图拆分为一个共用的全局组件
+
+**以后在开发项目时如果看到某一个组件在很多地方使用，你把它变成全局组件，注册一次可以在任意地方使用，共用的组件||非路由组件放到component文件夹中**
+
+## Search模块开发
+
+1. 先静态页面+静态组件拆分出来
+2. 发请求（api）
+3. vuex三连环
+4. 组件获取仓库信息并且动态展示数据
+
+**2.发请求**
+
+vuex三连环（这边补充计算属性简写）
+
+~~~javascript
+const actions = {
+  async getSearchList(context, params = {}) {
+    //当reqGetSearchInfo函数在获取服务器数据时至少要传一个参数（空对象）
+    //params形参：当用户派发action的时候第二个参数传过来的，至少是一个空对象
+    const result = await reqGetSearchInfo(params);
+    if (result.code == 200) {
+      context.commit("GETSEARCHLIST", result.data);
+    }
+  },
+};
+const mutations = {
+  GETSEARCHLIST(state, searchList) {
+    state.searchList = searchList;
+  },
+};
+const state = {
+  searchList: [],
+};
+~~~
+
+~~~javascript
+//getters计算属性简写
+//项目当中getters主要作用是：简化仓库中的数据（简化数据而生）
+//可以把我们将来要在组件中要使用的数据简化一下，将来用的时候就会很方便
+const getters = {
+  //如果服务器数据回来了没问题就是一个数组
+  //但是如果有网络问题，或者没网，那么这边返回的数据应该是undefined
+  //计算新的属性的属性值至少给人家来一个数组
+  goodsList(state){
+    return state.searchList.goodsList||[]
+  },
+  attrsList(state){
+    return state.searchList.attrsList||[]
+  },
+  trademarkList(state){
+    return state.searchList.trademarkList||[]
+  }
+};
+~~~
+
+//使用
+
+~~~javascript
+computed:{
+...mapGetters('search',['goodsList'])
+},
+~~~
+
+4. 动态展示和之前一样写个v-for就好了
+

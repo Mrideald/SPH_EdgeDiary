@@ -7,7 +7,7 @@ Vue.use(VueRouter)
 import Home from '../pages/Home/HomeContainer.vue'
 import Login from '../pages/Login/LoginContainer.vue'
 import Register from '../pages/Register/RegisterContaier.vue'
-import Search from '../pages/Search/SearchContainer.vue'
+import Search from '../pages/Search/search/index.vue'
 //先把Vuerouter原型对象上的push和replace复制一份
 const originRouter=VueRouter.prototype.push;
 const originReplace=VueRouter.prototype.replace;
@@ -41,7 +41,7 @@ routes:[
 {
     path:'/home',
     component:Home,
-    meta:{showFoot:true}
+    meta:{showFoot:true},
 },
 {
     path:'/login',
