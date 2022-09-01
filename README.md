@@ -1,4 +1,11 @@
-# 项目笔记
+## 尚品汇项目笔记
+
+## 开发一个页面
+
++ 静态组件
++ 发请求 写api文件
++ vuex
++ 动态展示组件
 
 ## day1
 
@@ -16,7 +23,29 @@
 **路由的跳转**
 
 1. 声明时导航router-link ，可以进行路由的跳转
+
+   ~~~
+   <router-link class="logo" title="尚品汇" to="/home">
+   <img src="./images/logo.png" alt="">
+   </router-link>
+   ~~~
+
 2. 编程式导航push|replace ，可以进行路由的跳转
+
+   ~~~js
+   <button @click="getSearch" >搜索</button>
+   一般是配置一个方法然后写方法
+   getSearch(){
+   let loction={name:'search',params:{keyword:this.keyword}}
+   //如果有query参数也要一并传递过去
+   if(this.$route.query){
+   loction.query=this.$route.query
+   }
+   this.$router.push(loction)  路由跳转
+   }
+   ~~~
+
+   
 
 编程式导航：声明式导航能做的，编程式导航都能做，但是编程式导航除了可以进行路由的跳转，还可以做一些别的业务
 
@@ -163,6 +192,8 @@ import TypeNav from '../src/pages/Home/TypeNav/TypeNav.vue'
 *//三级联动，全局组件，第一个参数是组件的名字name，第二个参数是哪一个组件*
 
 Vue.component(TypeNav.name,TypeNav)
+
+//在外面用的时候标签用的是名字name 
 
 ## axios二次封装
 
@@ -770,4 +801,376 @@ computed:{
 ~~~
 
 4. 动态展示和之前一样写个v-for就好了
+
+## Search根据不同的参数获取数据展示
+
+~~~
+beforeMount(){
+    //复杂的写法 （传递的数据是什么）
+    // this.searchParams.category1Id=this.$route.query.category1Id
+    // this.searchParams.category2Id=this.$route.query.category2Id
+    // this.searchParams.category3Id=this.$route.query.category3Id
+    // this.searchParams.categoryName=this.$route.query.categoryName
+    // this.searchParams.keyword=this.$route.params.keyword
+    //简写
+    Object.assign(this.searchParams,this.$route.query,this.$route.params);
+  },
+  //组件挂载完毕执行一次（仅仅执行一次，但我们需要的是每次搜索都像服务器发请求）
+  mounted() {
+    //在发请求之前带给服务器参数【searchParams参数发生变化有数值带给服务器】，然后服务器给你准备数据然后展示
+    this.getData();
+  },
+  methods: {
+    //向服务器发请求获取search模块数据（根据"参数不同"返回不同的数据进行展示）
+    //把这次请求封装成一个函数，当你需要的时候调用
+    getData() {
+      this.$store.dispatch("search/getSearchList", this.searchParams);
+    },
+  },
+~~~
+
+## Object.assign
+
+是[ES6](https://so.csdn.net/so/search?q=ES6&spm=1001.2101.3001.7020)新添加的接口，主要的用途是用来合并多个JavaScript的对象。
+
+Object.assign()接口可以接收多个参数，**第一个参数是目标对象，后面的都是源对象**，assign方法将多个原对象的属性和方法都合并到了目标对象上面，如果在这个过程中出现同名的属性（方法），后合并的属性（方法）会覆盖之前的同名属性（方法）。
+
+assign的基本用法如下：Object.assign(this.searchParams,this.$route.query,this.$route.params);
+
+## 监听路由变化再发请求获取数据
+
+~~~javascript
+watch: {
+    //监听路由的信息是否发生变化，如果发生变化，再次发起请求
+    $route(newValue, oldValue) {
+      //每一次请求完毕，应该把相应的1、2、3级分类的id置空的，让他接受下一次的相应1、2、3
+      //再次发请求之前整理带给服务器参数
+      Object.assign(this.searchParams, this.$route.query, this.$route.params);
+      //再次发起ajax请求
+      this.getData();
+      //分类名字与关键字不用清理：因为每一次路由发生变化的时候，都会给他赋予新的数据
+      //下一次发请求时重置categoryid数据
+      this.searchParams.category1Id = undefined;
+      this.searchParams.category2Id = undefined;
+      this.searchParams.category3Id = undefined;
+    },
+  },
+~~~
+
+# 面包屑的操作（平台售卖属性）
+
+展示面包屑
+
+~~~vue
+<!-- 平台售卖属性展示 -->
+<li
+  class="with-x"
+  v-for="(attrValue, index) in searchParams.props"
+  :key="index"
+>
+  {{ attrValue.split(":")[1] }}//从：处截断分成几个部分，选出第二个展示
+  <i @click="removeAttr">×</i>//定义删除事件
+~~~
+
+删除面包屑(这边用的是过滤操作，易懂一点)
+
+~~~javascript
+//removeAttr删除售卖的属性
+removeAttr() {
+//再次整理参数
+this.searchParams.props=this.searchParams.props.filter(()=>{
+return this.attrValue=!this.attrValue//过滤条件
+})
+//再次发请求
+this.getData();
+},
+~~~
+
+# 排序操作
+
+**升降序操作**
+
+> 上下图标用到了element ui
+
+~~~vue
+<!-- 排序的解构-->
+<ul class="sui-nav">
+<!-- 判断排序参数内是否含有1 若是含有1才显示这个样式 -->
+<!-- 等于-1是不包含1，不等于-1是包含1 -->
+<li :class="{ active:isOne}" @click="changeOrder('1')">
+<a href="#">综合<span :class="{'el-icon-top':isAsc,'el-icon-bottom':isDesc}" v-show="isOne"></span></a>
+</li>
+<li :class="{active:isTwo}" @click="changeOrder('2')">
+<a href="#">价格<span :class="{'el-icon-top':isAsc,'el-icon-bottom':isDesc}" v-show="isTwo"></span></a>
+</li>
+</ul>
+~~~
+
+~~~js
+//排序升序降序业务
+changeOrder(flag){
+//flag形参，他是一个标记，代表用户点击的是综合（1），价格（2）
+let originOrder=this.searchParams.order;
+//获取一些初始状态
+let originFlag=this.searchParams.order.split(':')[0];
+let originSort=this.searchParams.order.split(':')[1];
+//准备一个新的order
+let newOrder="";
+//如果点击的是综合
+if(flag==originOrder){
+newOrder=`${originFlag}:${originSort=="desc"? "asc":"desc"}`;
+}
+//如果点击的是价格
+else{
+newOrder=`${flag}:${originSort=="desc"? "asc":"desc"}`;
+}
+//将新的order赋予searchparams
+this.searchParams.order=newOrder;
+//再次发请求
+this.getData();
+}
+~~~
+
+# 分页器功能（重要）
+
+>  分页器展示需要那些条件（数据）？ 
+>
+> 需要知道的当前是第几个：PageNo字段代表当前页数
+>
+> 需要知道每一个需要展示多少条数据：pageSize字段进行代表
+>
+> 需要知道整个分页器一共有多少条数据：total字段进行代表—【获取另一条消息：一共多少页面】
+>
+> 需要知道分页器连续页码的个数：5/7【奇数】 因为奇数对称好看
+>
+> 总结 ：对于分页器而言，自定义前提是需要知道四个前提条件
+
+PageNo 当前第几个
+
+pageSize：代表每一页展示多少条数据
+
+total： 代表整个分页一共要展示多少条数据
+
+continues：代表分页连续页码个数
+
+> 自定义分页器，在开发的时候先自己传递假的数据进行调试，调试成功后在用服务器数据
+
+> 对于分页器而言，很重要的一个地方即为 算出页面起始数字和结束数字
+
+## 连续页码的起始数字和结束数字
+
+~~~js
+startNumAndEndNum() {
+      const { continues, totalPage, pageNo } = this;
+      let start = 0;
+      let end = 0;
+      //不正常现象，连续页码大于总页码
+      if (continues > totalPage) {
+        start = 1;
+        end = totalPage;
+      } else {
+        //正常现象
+        start = pageNo - Math.floor(continues / 2);
+        end = pageNo + Math.floor(continues / 2);
+        if (start < 1) {
+          start = 1;
+          end = continues; //end等于连续页码数
+        } else if (end > totalPage) {
+          end = totalPage;
+          start = totalPage - continues + 1;
+        }
+      }
+      return { start, end };
+    }
+~~~
+
+## 分页器动态展示
+
+~~~vue
+<div class="pagination">
+<button>上一页</button>
+<button v-show="startNumAndEndNum.start>1">1</button>
+<button v-show="startNumAndEndNum.start>2">...</button>
+
+<button v-for="(page,index) in startNumAndEndNum.end" :key="index" v-show="page>=startNumAndEndNum.start">{{page}}</button>
+
+<button v-show="startNumAndEndNum.end < this.totalPage-1">...</button>
+<button v-show="startNumAndEndNum.end<this.totalPage">{{ totalPage }}</button>
+<button>下一页</button>
+<button style="margin-left: 30px">共{{ total }}条</button>
+<h1>{{ startNumAndEndNum }}---{{ pageNo }}</h1>
+</div>
+~~~
+
+## 分页器跳转（自定义事件）
+
+~~~vue
+<PaginationSpace
+:pageNo="searchParams.pageNo"
+:pageSize="searchParams.pageSize"
+:total="total"
+:continues="5"
+@getPageNo="getPageNo"
+/>
+~~~
+
+先在分页器标签绑定自定义事件getPageNo 获取当前页
+
+绑定回调事件
+
+~~~js
+//自定义事件获取当前页
+getPageNo(pageNo){
+this.searchParams.pageNo=pageNo;
+this.getData();
+}
+~~~
+
+在分页器内写上调用
+
+~~~vue
+1. 在methods里调用
+//自定义事件获取当前页数 写俩个在这 其他的再到上面写
+getLastPage() {
+this.$emit("getPageNo", this.pageNo - 1);
+},
+getOnePage() {
+this.$emit("getPageNo", 1);
+},
+
+2.直接在标签内调用
+<button v-show="startNumAndEndNum.end < this.totalPage" @click="$emit('getPageNo',totalPage)">
+{{ totalPage }}
+</button>
+<button :disabled="pageNo==totalPage" @click="$emit('getPageNo',pageNo+1)">下一页</button>
+~~~
+
+:disabled=“布尔值” 当什么的时候不能点
+
+## 加个点击背景
+
+~~~vue
+<button
+v-for="(page, index) in startNumAndEndNum.end"
+:key="index"
+v-show="page >= startNumAndEndNum.start"
+@click="$emit('getPageNo',page)"
+:class="{active:pageNo==page}"
+>
+{{ page }}
+</button>
+只需要在中间写class就行了 很巧妙 当前页等于点击页就显示
+.active{
+background:skyblue;
+}
+~~~
+
+# 滚动行为
+
+> 这是vuerouter里的，router3和router4的文档不一样
+>
+> 跳转之后页面处于哪 如设置return{y:0} 页面始终跳转后处于顶部
+
+使用前端路由，当切换到新路由时，想要页面滚到顶部，或者是保持原先的滚动位置，就像重新加载页面那样。 `vue-router` 能做到，而且更好，它让你可以自定义路由切换时页面如何滚动。
+
+**注意: 这个功能只在支持 history.pushState 的浏览器中可用。**
+
+当创建一个 Router 实例，你可以提供一个 `scrollBehavior` 方法：
+
+```js
+const router = new VueRouter({
+  routes: [...],
+  scrollBehavior (to, from, savedPosition) {
+    // return 期望滚动到哪个的位置
+  }
+})
+```
+
+`scrollBehavior` 方法接收 `to` 和 `from` 路由对象。第三个参数 `savedPosition` 当且仅当 `popstate` 导航 (通过浏览器的 前进/后退 按钮触发) 时才可用。
+
+这个方法返回滚动位置的对象信息，长这样：
+
+- `{ x: number, y: number }`
+- `{ selector: string, offset? : { x: number, y: number }}` 
+
+# Detail 页面开发
+
+- 静态组件
+- 发请求 写api文件
+- vuex
+- 动态展示组件
+
+>  发请求
+
+~~~
+//商品详情页面数据
+export const reqGoodsInfo=(skuId)=>requests({url:`/item/${ skuId }`,method:'get'})
+~~~
+
+这边是带参的，参数skuId
+
+> vuex 这边一些东西都是固定的
+
+记得要写发请求的 那需要数据在哪写,第一个参数是调用的函数,第二个是所带的参数
+
+~~~js
+mounted(){
+  this.$store.dispatch('getGoodInfo',this.$route.params.skuid)
+}
+要是有命名空间的话要注明在哪个模块写的
+getData() {
+  this.$store.dispatch("search/getSearchList", this.searchParams);
+},
+~~~
+
+~~~js
+import { reqGoodsInfo } from "/src/api/index";
+const actions={
+ async getGoodInfo(context,skuId){
+    let result =await reqGoodsInfo(skuId)
+    if(result.code==200){
+        context.commit("GETGOODINFO",result.data)
+    }
+ }
+}
+
+const mutations={
+    GETGOODINFO(state,goodInfo){
+  state.goodInfo=goodInfo
+    }
+}
+const state={
+    goodInfo:{}
+}
+const getters={
+    categoryView(){
+        return state.goodInfo.categoryView||{}
+    },
+    skuInfo(){
+        return state.goodInfo.skuInfo||{}
+    }
+}
+export default {
+    //问题 这边一写命名空间就报错
+    actions,
+    mutations,
+    state,
+    getters,
+  };
+
+~~~
+
+写好以上就可以去看看有没有vuex数据了
+
+> 动态展示组件
+
+用mapaction获取数据或者用mapgetters写好之后获取数据展示
+
+~~~
+computed:{
+ ...mapGetters(['categoryView','skuInfo'])
+},
+~~~
+
+最后渲染在页面上就可以了
 

@@ -1,4 +1,5 @@
 //对api进行统一管理
+//这是开发项目的第二步
 import requests from "./request";
 //引入mock api
 import mockRequests from "./mockAjax"
@@ -38,3 +39,6 @@ export const reqFloorList=()=>{
 */
 //需要带参  给服务器传递的一个参数params 至少是一个空对象
 export const reqGetSearchInfo=(params)=>requests({url:'/list',method:'post',data:params})
+
+//商品详情页面数据
+export const reqGoodsInfo=(skuId)=>requests({url:`/item/${ skuId }`,method:'get'})
