@@ -1,6 +1,420 @@
+
+
 ## 尚品汇项目笔记
 
-## 开发一个页面
+## 补充知识
+
+### javascript中的原型和原型链
+
+ #### 一. 原型
+
+> 每一个javascript对象(除null外)创建的时候，都会与之关联另一个对象，这个对象就是我们所说的原型，每一个对象都会从原型中“继承”属性。
+
+![img](https://img-blog.csdnimg.cn/20200508150814540.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3FxXzM0NjQ1NDEy,size_16,color_FFFFFF,t_70)
+
+#### 二. prototype
+
+>  在JavaScript中，每个函数都有一个prototype属性，这个属性指向函数的原型对象。（ps：函数其实也是一个对象，所以与上述一、中的例子不冲突）
+
+![img](https://img-blog.csdnimg.cn/2020050815162482.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3FxXzM0NjQ1NDEy,size_16,color_FFFFFF,t_70)
+
+#### 三、__proto__
+
+这是每个对象(除null外)都会有的属性，叫做__proto__，这个属性会指向该对象的原型。
+
+![img](https://img-blog.csdnimg.cn/20200509144802431.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3FxXzM0NjQ1NDEy,size_16,color_FFFFFF,t_70)
+
+#### 四、constructor
+
+每个原型都有一个constructor属性，指向该关联的构造函数。
+
+```javascript
+  function Animal(weight) {
+
+
+
+     this.weight = weight
+
+
+
+  }
+
+
+
+  Animal.prototype.height = 10
+
+
+
+  var cat1 = new Animal()
+
+
+
+  var cat2 = new Animal()
+
+
+
+ console.log('cat1.__proto__ === Animal.prototype',cat1.__proto__ === Animal.prototype)
+
+
+
+ console.log('Animal===Animal.prototype.constructor',Animal===Animal.prototype.constructor)
+
+
+
+// 获取原型对象
+
+
+
+ console.log('Object.getPrototypeOf(cat1) === Animal.prototype',Object.getPrototypeOf(cat1) === Animal.prototype)
+```
+
+![img](https://img-blog.csdnimg.cn/20200509150521695.png)
+
+更新关系图
+
+![img](https://img-blog.csdnimg.cn/20200509151054426.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3FxXzM0NjQ1NDEy,size_16,color_FFFFFF,t_70)
+
+cat1.__proto__ === Animal.prototype
+
+Animal === Animal.prototype.constructor
+
+那么cat1.constructor === Animal为true 吗？答案是true,因为每一个对象都会从原型中“继承”属性，cat1中并没有属性constructor ，但是它的原型cat1.__proto__ 指向的是Animal.prototype，然而Animal.prototype原型中是有属性constructor的，于是cat1的constructor属性继承与原型中的constructor属性。这里便能看出一点点[原型链](https://so.csdn.net/so/search?q=原型链&spm=1001.2101.3001.7020)的影子了，我们接着看
+
+因此cat1.constructor === Animal 也是 true
+
+#### 五、实例与原型
+
+ 当读取实例的属性时，如果找不到，就会查找与对象关联的原型中的属性，如果还查不到，就去找原型的原型，一直找到最顶层为止。这样就形成了原型链
+
+```javascript
+function Animal(weight) {
+
+
+
+   this.weight = weight
+
+
+
+}
+
+
+
+ Animal.prototype.name = 'animal'
+
+
+
+ var cat1 = new Animal()
+
+
+
+ cat1.name = 'littleCat'
+
+
+
+ console.log('cat1.name',cat1.name)
+
+
+
+ delete cat1.name;
+
+
+
+ console.log('cat1.name',cat1.name)
+```
+
+![img](https://img-blog.csdnimg.cn/20200509161327694.png)
+
+可以看见，删除属性前，那么是littleCat，删除那么属性后，该实例没有了name属性，找不到name属性的时候，它就会去 它的对象原型中去找也就是去cat1.__proto__中也就是Animal.prototype中去寻找，而Animal.prototype中的name属性的值是animal，所以删除name属性后的值变成了原型中属性name的值animal
+
+那么接着来看，如果cat1的原型中也没有name属性呢？会怎么办？去原型的原型中找？那么原型的原型是什么？
+
+#### 六、原型的原型
+
+我们说原型是对象创建的时候关联的另一个对象，那么原型也是一个对象，既然是对象那么原型也应该关联一个对象是原型的原型
+
+那么原型对象创建的时候也会关联一个对象
+
+```typescript
+var obj = new Object();
+```
+
+看关系图
+
+![img](https://img-blog.csdnimg.cn/20200509163925513.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3FxXzM0NjQ1NDEy,size_16,color_FFFFFF,t_70)
+
+那么Object.prototype的原型呢？
+
+也就是 Object.prototype.__proto__是什么呢
+
+```typescript
+console.log('Object.prototype.__proto__ === null',Object.prototype.__proto__ === null)
+```
+
+可以看到结果![img](https://img-blog.csdnimg.cn/2020050916430933.png)
+
+也就说Object.prototype.__proto__ 的值为 null 即 Object.prototype 没有原型，所以可以想象在原型链中，当属性找到顶层原型都没有属性那就是没有这个属性
+
+![img](https://img-blog.csdnimg.cn/20200509164641871.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3FxXzM0NjQ1NDEy,size_16,color_FFFFFF,t_70)
+
+#### 七、原型链
+
+综上所述 ，将原型的实例赋值给另一个对象，另一个对象再赋值给其他的对象，在实际的代码中对对象不同的赋值，就会形成一条原型链。这样说可能很抽象，我们来看个例子
+
+```javascript
+ function Animal(weight) {
+     this.weight = weight
+ }
+ Animal.prototype.name = 'animal'
+ var cat1 = new Animal()
+ var pinkCat = cat1
+ console.log('pinkCat.name',pinkCat.name)
+ console.log('pinkCat.__proto__ === cat1.__proto__ == Animal.prototype',pinkCat.__proto__ === cat1.__proto__ == Animal.prototype)
+ var samllPinkCat = pinkCat
+ console.log('samllPinkCat.name',samllPinkCat.name)
+ console.log(samllPinkCat.__proto__ == pinkCat.__proto__ === cat1.__proto__ == Animal.prototype)
+```
+
+![img](https://img-blog.csdnimg.cn/20200509170631339.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3FxXzM0NjQ1NDEy,size_16,color_FFFFFF,t_70)
+
+以上就是原型链一层一层链接上去形成一条链条就是所谓的原型链；以上cat1实例化了Animal,cat1赋值给了pinkCat,pinkCat又赋值给了samllPinkCat，就形成看原型链，从samllPinkCat，pinkCat到cat1最后到Animal
+
+
+
+### Promise
+
+ [CSDN关于这一节链接](https://blog.csdn.net/weixin_58032613/article/details/123068953?ops_request_misc=%257B%2522request%255Fid%2522%253A%2522166228048016782391888710%2522%252C%2522scm%2522%253A%252220140713.130102334..%2522%257D&request_id=166228048016782391888710&biz_id=0&utm_medium=distribute.pc_search_result.none-task-blog-2~all~top_click~default-1-123068953-null-null.142^v46^pc_rank_34_2&utm_term=%E5%9B%9E%E8%B0%83%E5%9C%B0%E7%8B%B1%E6%80%8E%E4%B9%88%E4%BA%A7%E7%94%9F&spm=1018.2226.3001.4187)
+
+#### 1. 回调函数
+
+> 当一个函数作为参数传入另一个参数中，并且它不会立即执行，只有当满足一定条件后该函数才可以执行，这种函数就称为回调函数。我们熟悉的定时器和[Ajax](https://so.csdn.net/so/search?q=Ajax&spm=1001.2101.3001.7020)中就存在有回调函数。
+
+```js
+setTimeout(function(){   //function(){console.log('执行了回调函数')}就是回调函数，它只有在3秒后才会执行
+	console.log('执行了回调函数');
+},3000)  //3000毫秒
+123
+```
+
+这里的回调函数是function(){console.log(‘执行了回调函数’)}，在满足时间3秒后执行。
+
+```js
+//1.创建异步对象
+	var xhr=new XMLHttpRequest();
+//2.绑定监听事件(接收请求)
+	xhr.onreadystatechange=function(){
+	//此方法会被调用4次
+	//最后一次，readyState==4
+	//并且响应状态码为200时，才是我们要的响应结果 xhr.status==200
+	if(xhr.readyState==4 && xhr.status==200){
+	//把响应数据存储到变量result中
+					var result=xhr.responseText;
+					console.log(result);
+				}
+			};
+ //3.打开链接（创建请求）
+	xhr.open("get","/demo/ajaxDemo",true);
+//4.发送请求
+	xhr.send();
+1234567891011121314151617
+```
+
+这里的回调函数是xhr.onreadystatechange绑定的函数，在xhr.send()发送请求并拿到响应后执行。
+
+#### 2. 异步任务
+
+> 与之相对应的概念是“同步任务”，同步任务在主线程上排队执行，只有前一个任务执行完毕，才能执行下一个任务。异步任务不进入主线程，而是进入异步队列，前一个任务是否执行完毕不影响下一个任务的执行。同样，还拿定时器作为异步任务举例。
+
+```js
+  setTimeout(function(){
+            console.log('执行了回调函数');
+        },3000)
+        console.log('111');
+1234
+```
+
+如果按照代码编写的顺序，应该先输出“执行了回调函数”，再输出“111”。但实际输出为：
+![在这里插入图片描述](https://img-blog.csdnimg.cn/20201212210523379.png#pic_center)
+不阻塞后面任务执行的任务就叫做异步任务。
+接下来让我们看看什么是回调地狱。
+
+#### 一、回调地狱是什么？
+
+根据前面我们可以得出一个结论：存在异步任务的代码，不能保证能按照顺序执行，那如果我们非要代码顺序执行呢？
+
+比如我要说一句话，语序必须是下面这样的：武林要以和为贵，要讲武德，不要搞窝里斗。
+我必须要这样操作，才能保证顺序正确。
+
+```js
+ setTimeout(function () {  //第一层
+            console.log('武林要以和为贵');
+            setTimeout(function () {  //第二程
+                console.log('要讲武德');
+                setTimeout(function () {   //第三层
+                    console.log('不要搞窝里斗');
+                }, 1000)
+            }, 2000)
+        }, 3000)
+123456789
+```
+
+输出的结果为：
+![在这里插入图片描述](https://img-blog.csdnimg.cn/20201212214033667.png#pic_center)
+可以看到，代码中的回调函数套回调函数，居然套了3层，这种回调函数中嵌套回调函数的情况就叫做回调地狱。
+
+**总结：回调地狱就是为是实现代码顺序执行而出现的一种操作，它会造成我们的代码可读性非常差，后期不好维护。**
+
+那该如何解决回调地狱呢？
+
+#### 二、如何解决回调地狱
+
+##### 2.1 Promise
+
+Promise是js中的一个原生对象，是一种异步编程的解决方案，可以替换掉传统的回调函数解决方案。
+
+1. Promise构造函数接收一个函数作为参数，我们需要处理的异步任务就卸载该函数体内，该函数的两个参数是resolve，reject。异步任务执行成功时调用resolve函数返回结果，反之调用reject。
+2. Promise对象的then方法用来接收处理成功时响应的数据，catch方法用来接收处理失败时相应的数据。
+3. Promise的链式编程可以保证代码的执行顺序，前提是每一次在than做完处理后，一定要return一个Promise对象，这样才能在下一次then时接收到数据。
+
+```js
+        function fn(str){
+            var p=new Promise(function(resolve,reject){
+                //处理异步任务
+                var flag=true;
+                setTimeout(function(){
+                    if(flag){
+                        resolve(str)
+                    }
+                    else{
+                        reject('操作失败')
+                    }
+                })
+            })
+            return p;
+        }
+
+        fn('武林要以和为贵')
+        .then((data)=>{
+            console.log(data);
+            return fn('要讲武德');
+        })
+        .then((data)=>{
+            console.log(data);
+            return fn('不要搞窝里斗')
+        })
+        .then((data)=>{
+            console.log(data);
+        })
+        .catch((data)=>{
+            console.log(data);
+        })
+
+但是Promise最大的问题就是代码冗余，原来的异步任务被Promise封装一下，不管什么操作都用than，就会导致一眼看过去全是then…then…then…,这样也是不利于代码维护的。
+```
+
+所以下面的async/await 可以时代码看起来更像同步代码。
+
+##### 2.2 async/await
+
+首先我们看async关键字，他作为一个关键字放到声明函数前面，表示该函数为一个异步任务，不会阻塞后面函数的执行。
+
+```js
+    async function fn(){
+            return '不讲武德';
+        }
+        console.log(fn());
+打印结果是一个Promise对象
+可以看到async函数返回数据时自动封装为一个Promise对象。
+```
+
+和Promise对象一样，处理异步任务时也可以按照成功和失败来返回不同的数据，处理成功时用then方法来接收，失败时用catch方法来接收数据。
+
+```javascript
+     async function fn() {
+            var flag = true;
+            if (flag) {
+                return '不讲武德';
+            }
+            else{
+                throw '处理失败'
+            }
+        }
+        fn()
+        .then(data=>{
+            console.log(data);
+        })
+        .catch(data=>{
+            console.log(data);
+        })
+
+        console.log('先执行我，表明async声明的函数是异步的');
+123456789101112131415161718
+当把flag设置为false是，执行结果为：
+![在这里插入图片描述](https://img-blog.csdnimg.cn/258e9f0e10d14278918474ffdae64d7d.png)
+async关键字说完了，我们看看awai关键字
+```
+
+1. await关键字只能在使用async定义的函数中使用
+2. await后面可以直接跟一个 Promise实例对象（可以跟任何表达式，更多的是跟一个返回Promise对象的表达式）
+3. await函数不能单独使用
+4. await可以直接拿到Promise中resolve中的数据。
+
+```js
+  //封装一个返回promise的异步任务
+        function fn(str) {
+            var p = new Promise(function (resolve, reject) {
+                var flag = true;
+                setTimeout(function () {
+                    if (flag) {
+                        resolve(str)
+                    } else {
+                        reject('处理失败')
+                    }
+                })
+            })
+            return p;
+        }
+
+        //封装一个执行上述异步任务的async函数
+        async function test(){
+            var res1=await fn('武林要以和为贵');  //await直接拿到fn()返回的promise的数据，并且赋值给res
+            var res2=await fn('要讲武德');
+            var res3=await fn('不要搞窝里斗');
+            console.log(res1,res2,res3);
+        }
+        //执行函数
+        test();
+123456789101112131415161718192021222324
+```
+
+结果为:
+![在这里插入图片描述](https://img-blog.csdnimg.cn/6e4146410b0c4ec5b060aeda6d0ee13d.png)
+为什么叫await等待呢，因为当代码执行到async函数中的await时，代码就在此处等待不继续往下执行，知道await拿到Promise对象中resolve的数据，才继续往下执行，这样就保证了代码的执行顺序，而且使异步代码看起来更像同步代码。
+
+##### 总结：
+
+当我们写代码遇到异步回调时，我们想让异步代码按照我们想要的顺序执行，如果按照传统的嵌套方式，就会出现回调地狱，这样的代码不利于维护，我们可以通过Promise对象进行链式编程来解决，这样尽管可以解决问题，但是ES7给我们提供了更加舒适的async/await语法糖，可以使得异步代码看起来更像是同步代码。
+
+
+
+
+
+## 一些陌生且常用的api
+
+`@change=""`
+
+> 当用户更改<input> <select> <textarea>元素的值并提交这个更改时，`change` 事件在这些元素上触发。对于一些元素，包括 `<input type="text">`，`change` 事件在控件失去焦点前都不会触发。
+
+`parseInt()`
+
+> 该函数可以解析一个字符串返回一个整数，向下取整
+
+
+
+
+
+
+
+## 开发一个项目基本
 
 + 静态组件
 + 发请求 写api文件
@@ -659,7 +1073,7 @@ swiper使用:
 
 >  最好的解决方法：watch+$nextTick
 
-**为什么单单用watch不行**:因为watch监听到数据以及发生变化了但是还没有渲染到结构上（v-for不知道执行没有），所以数据结构还是不完整
+**为什么单单用watch不行**:因为watch监听到数据以及发生变化了但是还没有渲染到结构上（v-for（渲染轮播图照片）不知道执行没有），所以数据结构还是不完整
 
 ~~~javascript
 watch: {
@@ -1174,3 +1588,207 @@ computed:{
 
 最后渲染在页面上就可以了
 
+# 产品售卖属性值的排他操作
+
+![1662016627951](C:\Users\做你的宇航员\AppData\Roaming\Typora\typora-user-images\1662016627951.png)
+
+要使点击的属性值为高亮的操作
+
+~~~js
+先在属性标签绑定点击事件
+<dd
+//通过isChecked变为0或者1判断是否是高亮
+:class="{ active: skuSaleAttrValue.isChecked== 1 }"
+v-for="skuSaleAttrValue in skuSaleAttrValueList":key="skuSaleAttrValue.id"
+//传值，第一个值为当前当前点击的那个值，第二个为遍历的总数组
+@click="changeActive(skuSaleAttrValue,skuSaleAttrValueList)"
+>
+{{ skuSaleAttrValue.saleAttrValueName }}
+</dd>
+
+//产品售卖属性值变为高亮
+changeActive(saleAttrValue,arr){
+ //遍历全部售卖属性值isChecked为零没有高亮了
+ arr.forEach((item)=>{
+  item.isChecked='0'
+ })
+ //点击的那个售卖属性值为高亮
+ saleAttrValue.isChecked='1'
+}
+~~~
+
+# 放大镜操作
+
+固定模式
+
+~~~vue
+<template>
+  <div class="spec-preview">
+    <img :src="skuImageList[currentIndex].imgUrl" />
+     //绑定事件
+    <div class="event" @mousemove="handler"></div>
+     //放大的大图
+    <div class="big">
+      <img :src="skuImageList[currentIndex].imgUrl" ref="big" />
+    </div>
+    <!-- 绿布遮罩层 -->
+    <div class="mask" ref="mask"></div>
+  </div>
+</template>
+
+<script>
+export default {
+  name: "ZoomContainer",
+  data() {
+    return {
+      currentIndex: "0",
+    };
+  },
+  props: ["skuImageList"],
+  methods: {
+    getCurrentIndex(index) {
+      this.currentIndex = index;
+    },
+      //主要代码
+    handler(event) {
+      //event是mousemove事件的默认参数，里面包含移动的每一个位置 可以打印看看
+      let mask = this.$refs.mask;
+      let big = this.$refs.big;
+      let left = event.offsetX - mask.offsetWidth / 2;
+      let top = event.offsetY - mask.offsetHeight / 2;
+      //约束范围
+      if (left <= 0) left = 0;
+      if (left >= mask.offsetWidth) left = mask.offsetWidth;
+      if (top <= 0) top = 0;
+      if (top >= mask.offsetHeight) top = mask.offsetHeight;
+      //修改元素的left和top值
+      mask.style.left = left + "px";
+      mask.style.top = top + "px";
+      big.style.left = -2 * left + "px";
+      big.style.top = -2 * top + "px";
+    },
+  },
+  mounted() {
+    this.$bus.$on("getCurrentIndex", this.getCurrentIndex);
+  },
+};
+</script>
+
+~~~
+
+# NaN科普
+
+> **NaN**（*Not a Number*，非数字）是计算机科学中**数值数据类型的一类值**，表示未定义或不可表示的值。
+> 虽然 NaN 是“Not a Number”，但是它的类型还是数值类型
+
+~~~
+console.log(typeof NaN === "number");  //true
+~~~
+
+> NaN和任何数字都不想等，即便是他本身
+
+~~~
+console.log(NaN === NaN);  //false
+~~~
+
+~~~
+ var str = '666';
+ const obj = {age:18};
+ console.log(isNaN('str'));//flase;
+ console.log(isNaN('666'));//false;
+ console.log(isNaN(obj));//true;
+~~~
+
+isNaN()会先将参数转为Number 类型，（Number()，非parseInt()或Math.floor()），再判断是否为NaN ，所以在类型转换失败或运算错误时值为NaN，返回true，其他全为false)
+
+就是说如果是非数字就会返回true 其他都是false 非数字都转化为NaN了
+
+![1662194749044](C:\Users\做你的宇航员\AppData\Roaming\Typora\typora-user-images\1662194749044.png)
+
+这边用到*1思想  非数字*1等于NaN
+
+# 商品挑选个数问题（涉及输入非法）
+
+非法的有：文字，字母，小数 负数
+
+![1662203047997](C:\Users\做你的宇航员\AppData\Roaming\Typora\typora-user-images\1662203047997.png)
+
+~~~vue
+<!-- 搞清楚@change 在上面 -->
+<input autocomplete="off" class="itxt" v-model="skuNum" @change="changeSkuNum" />
+<a href="javascript:" class="plus" @click="skuNum++">+</a>
+<a href="javascript:" class="mins" @click="skuNum>0? skuNum--:skuNum=0">-</a>
+~~~
+
+~~~js
+changeSkuNum(event){
+//让用户输入的数据*1 若是非法 乘以1后会变为NaN 像字母 文字*1之后都会变成NaN
+let value=event.target.value*1
+//如果用户输入数据非法,出现NaN或者小于1
+if(isNaN(value)||this.skuNum<1){
+ this.skuNum="1"
+}
+//排除有小数的情况，返回一个整数，向下取整
+else{
+this.skuNum=parseInt(value)
+}
+}
+~~~
+
+# 加入购物车成功与失败的判断（Promise,async,await）
+
+~~~js
+async AddOrUpdateShopCart(context,{skuId,skuNum}){
+    //加入购物车返回的解构
+    //加入购物车以后（发请求），前台将参数带给服务器
+    //服务器写入数据成功，并没有返回其他的数据，只是返回code=200，代表这次操作成功
+    //因为服务器没有返回其余的数据，因此咱们不需要三连环存储数据
+        let result =await reqAddOrUpdateShopCart(skuId,skuNum);
+        //代表服务器写入数据成功
+        if(result.code==200){
+            return "ok"
+        }else{
+            //代表加入购物车失败,返回一个错误
+         return Promise.reject(new Error('faile'))
+
+        }
+    }
+~~~
+
+~~~js
+async addShopCar() {
+      //1：发请求---将产品加入到数据库（通知服务器）
+      try {
+        await this.$store.dispatch("AddOrUpdateShopCart", {
+          skuId: this.$route.params.skuid,
+          skuNum: this.skuNum,
+        });
+      } catch (error) {
+        alert(error.message);
+      }
+      //2:服务器存储成功---进行路由跳转传递参数
+      //3:失败给用户提示
+    },
+~~~
+
+# 本地存储和会话存储
+
+> **JSON.stringify()** 方法将一个 JavaScript 对象或值转换为 JSON 字符串，如果指定了一个 replacer 函数，则可以选择性地替换值，或者指定的 replacer 是数组，则可选择性地仅包含数组指定的属性。
+
+> **JSON.parse()** 方法用来解析 JSON 字符串，构造由字符串描述的 JavaScript 值或对象。提供可选的 **reviver** 函数用以在返回之前对所得到的对象执行变换 (操作)。JSON.parse(sesssionStorage.getItem(“SKUINFO”))
+
+大概理解就是存对象的时候用JSON.stringify()，读的时候让他返回成一个对象用JSON.parse() *本地存储|会话存储，一般存储的是字符串,可以通过JSON转换对象*
+
+**会话存储**
+
+sessionStorage.setItem("SKUINFO",JSON.stringify(this.skuInfo))
+
+sessionStorage.getItem(“SKUINFO”)
+
+sessionStorage.removeItem(“SKUINFO”)
+
+sessionStorage.clear()清空所有
+
+**本地存储**
+
+和上面一样，session换成local

@@ -42,3 +42,5 @@ export const reqGetSearchInfo=(params)=>requests({url:'/list',method:'post',data
 
 //商品详情页面数据
 export const reqGoodsInfo=(skuId)=>requests({url:`/item/${ skuId }`,method:'get'})
+//商品加入购物车
+export const reqAddOrUpdateShopCart=(skuId,skuNum)=>requests({url:`/cart/addToCart/${ skuId }/${ skuNum }`,method:'post'})

@@ -4,7 +4,20 @@ import Login from "../pages/Login/LoginContainer.vue";
 import Register from "../pages/Register/RegisterContaier.vue";
 import Search from "../pages/Search/search/index.vue";
 import Detail from "../pages/Detail"
+import AddCartSuccess from "../pages/AddCartSuccess/index.vue"
+import ShopCart from "../pages/ShopCart/index.vue"
 export default [
+  {
+    path:"/shopCart",
+    component:ShopCart,
+    meta: { showFoot: true },
+  },
+  {
+    path: "/addCartSuccess",
+    name:"addCartSuccess",
+    component: AddCartSuccess,
+    meta: { showFoot: true },
+  },
     {
       path: "/detail/:skuid?",
       component: Detail,
