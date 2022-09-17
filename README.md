@@ -394,7 +394,31 @@ async关键字说完了，我们看看awai关键字
 
 当我们写代码遇到异步回调时，我们想让异步代码按照我们想要的顺序执行，如果按照传统的嵌套方式，就会出现回调地狱，这样的代码不利于维护，我们可以通过Promise对象进行链式编程来解决，这样尽管可以解决问题，但是ES7给我们提供了更加舒适的async/await语法糖，可以使得异步代码看起来更像是同步代码。
 
+### promise.all()
 
+Promise.all() 方法接收一个 promise 的 iterable 类型（注：Array，Map，Set 都属于 ES6 的 iterable 类型）的输入，并且只返回一个[`Promise`](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Promise)实例， 那个输入的所有 promise 的 resolve 回调的结果是一个数组。这个[`Promise`](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Promise)的 resolve 回调执行是在所有输入的 promise 的 resolve 回调都结束，或者输入的 iterable 里没有 promise 了的时候。它的 reject 回调执行是，只要任何一个输入的 promise 的 reject 回调执行或者输入不合法的 promise 就会立即抛出错误，并且 reject 的是第一个抛出的错误信息。
+
+> **Promise.all()** 方法用于将多个 Promise 实例，包装成一个新的 Promise 实例。
+
+~~~js
+const promise1 = Promise.resolve(3);
+const promise2 = 42;
+const promise3 = new Promise((resolve, reject) => {
+  setTimeout(resolve, 100, 'foo');
+});
+
+Promise.all([promise1, promise2, promise3]).then((values) => {
+  console.log(values);
+});
+~~~
+
+const p = Promise.all([p1, p2, p3]);
+
+上面代码中，**Promise.all()**方法接受一个数组作为参数，**p1、p2、**`**p3**`都是 Promise 实例，如果不是，就会先调用 `**Promise.resolve**`方法，将参数转为 Promise 实例，再进一步处理。另外，**Promise.all()**方法的参数可以不是数组，但必须具有 Iterator 接口，且返回的每个成员都是 Promise 实例。
+
+### vuex里的context(上下文)
+
+> 可以理解为小仓库，api有commit【提交mutations修改state】 getters【计算属性】 dispatch【派发action】,state【当前仓库数据】 可以在action中调用
 
 
 
@@ -408,9 +432,20 @@ async关键字说完了，我们看看awai关键字
 
 > 该函数可以解析一个字符串返回一个整数，向下取整
 
+`array.every`
+
+> **every()** 方法测试一个数组内的所有元素是否都能通过某个指定函数的测试。它返回一个布尔值。
+
+~~~js
+const isBelowThreshold = (currentValue) => currentValue < 40;
+const array1 = [1, 30, 39, 29, 10, 13];
+console.log(array1.every(isBelowThreshold));
+// expected output: true,有一个不小于40都是false
+~~~
 
 
 
+**assets下的是所有组件共用的静态资源**
 
 
 
@@ -1792,3 +1827,297 @@ sessionStorage.clear()清空所有
 **本地存储**
 
 和上面一样，session换成local
+
+# uuid游客身份获取购物车数据
+
+> 创建一个utils文件夹专门封装一些功能文件
+
+~~~js
+生成uuid
+import { v4 as uuidv4 } from 'uuid';
+export const getUUID=()=>{
+    //先从本地存储获取uuid()看看里面是否有uuid
+    let uuid_token=localStorage.getItem('UUIDTOKEN')
+    //如果没有
+    if(!uuid_token){
+        //生成游客身份
+       uuid_token=uuidv4();
+       //本次存储一次
+       localStorage.setItem("UUIDTOKEN",uuid_token)
+    }
+    return uuid_token;
+}
+
+~~~
+
+**引入**
+
+~~~
+import {getUUID} from '/src/utils/uuid_token'
+存到vuex里的state里面
+uuid_token:getUUID()
+~~~
+
+**修改头文件 让id参数信息带给服务器**
+
+**api/request请求拦截器里面**
+
+~~~
+//给请求头添加一个字段 userTempId是后端给的
+config.headers.userTempId=store.state.detail.uuid_token
+~~~
+
+写完这些再去三连环就可以获取到数据了
+
+# 修改产品个数
+
+这边需要用到节流，防止用户点击过快
+
+~~~js
+ //修改某一个产品的个数
+    handler(type, disNum, cart) {
+      //type:为了区分这三种元素
+      //disNum形参：+变化量(1) -变化量(-1) input最终的个数(并不是变化量)
+      //cart：哪一个产品[身上有id]
+      switch (type) {
+        case "add":
+          //带给服务器变化的量
+          disNum = 1;
+          break;
+        case "minus":
+          //判断产品的个数是否大于1
+          //如果出现产品个数小于等于1，那么传递给服务器的数据原封不动
+          disNum = cart.skuNum > 1 ? -1 : 0;
+          break;
+          //如果输入的字符带给服务器是非法的
+        case "change":
+          if(isNaN(disNum)||disNum<1){
+            disNum=0
+          }else{
+            //disNum是变化量,带给服务器的数字应该是输入的数字减去原来的数字
+            disNum=parseInt(disNum)-cart.skuNum
+          }
+          break;
+          //也可以简化的，但为了方便读代码
+          //disNum=isNaN(disNum)||disNum<1? 0:parseInt(disNum)-cart.skuNum
+      }
+      //派发action
+      try {
+        //代表数据修改成功，向服务器发请求更新数据
+        this.$store.dispatch("AddOrUpdateShopCart", {
+          skuId: cart.skuId,
+          skuNum: disNum,
+        });
+        //更新数据
+        this.getData();
+      } catch (error) {
+        console.error(error);
+      }
+    },
+~~~
+
+~~~js
+节流操作
+ handler:throttle(async function(type, disNum, cart){
+ //type:为了区分这三种元素
+      //disNum形参：+变化量(1) -变化量(-1) input最终的个数(并不是变化量)
+      //cart：哪一个产品[身上有id]
+      switch (type) {
+        case "add":
+          //带给服务器变化的量
+          disNum = 1;
+          break;
+        case "minus":
+          //判断产品的个数是否大于1
+          //如果出现产品个数小于等于1，那么传递给服务器的数据原封不动
+          disNum = cart.skuNum > 1 ? -1 : 0;
+          break;
+        //如果输入的字符带给服务器是非法的
+        case "change":
+          if (isNaN(disNum) || disNum < 1) {
+            disNum = 0;
+          } else {
+            //disNum是变化量,带给服务器的数字应该是输入的数字减去原来的数字
+            disNum = parseInt(disNum) - cart.skuNum;
+          }
+          break;
+        //也可以简化的，但为了方便读代码
+        //disNum=isNaN(disNum)||disNum<1? 0:parseInt(disNum)-cart.skuNum
+      }
+      //派发action
+      try {
+        //代表数据修改成功，向服务器发请求更新数据
+      await  this.$store.dispatch("AddOrUpdateShopCart", {
+          skuId: cart.skuId,
+          skuNum: disNum,
+        });
+        //更新数据
+        this.getData();
+      } catch (error) {
+        console.error(error);
+      }
+    },1500),
+~~~
+
+
+
+
+
+# 对于不需要返回数据的api接口三连环写法
+
+~~~js
+async deleteCart(context,skuId){
+ let result=await reqDeleteCart(skuId);
+ if(result.code==200){
+  return "ok"
+ }else{
+  return Promise.reject(new Error('faile'))
+ }
+}
+成功了返回ok 失败了返回
+~~~
+
+~~~js
+ async deleteCart(cart) {
+      try {
+        //如果删除成功再次发请求
+        await this.$store.dispatch("deleteCart", cart.skuId);
+        this.getData();
+      } catch (error) {
+        alert(error.message);
+      }
+    },
+~~~
+
+//两边都要用promise封装
+
+# 删除全选商品和全选商品
+
+Promise.all()
+
+> 将多个promise对象封装成一个
+
+删除全选商品
+
+使用删除一个商品的api 写一个方法删除全部商品，需要在这个方法调用删除一个商品的，在methods里面调用不了，去vuex里面actions里写一个方法调用那个api，用context.dispatch，遍历有几个商品，context.dispatch得到多个promise对象，用promise.all（）封装成一个promise对象并且返回
+
+~~~js
+async deleteAllCheckedCart(){
+try {
+await  this.$store.dispatch("deleteAllCheckedCart")
+this.getData()
+} catch (error) {
+ alert(error.message)
+}
+}
+~~~
+
+~~~js
+ //删除选中所有商品
+deleteAllCheckedCart(context){
+let promiseAll=[]
+context.getters.cartList.cartInfoList.forEach(item=>{
+let promiseCart=item.isChecked==1? context.dispatch("deleteCart",item.skuId):''
+promiseAll.push(promiseCart)
+})
+return Promise.all(promiseAll)
+}
+~~~
+
+全选商品
+
+~~~js
+ //全选所有商品
+   async  allCheckedCart(event){
+      try {
+      let isChecked=event.target.checked? "1":"0"
+       await this.$store.dispatch("allCheckedCart",isChecked)
+       this.getData()
+      } catch (error) {
+          alert(error.message)
+      }
+    }
+~~~
+
+~~~js
+ //全选所有商品，调用上面的方法
+  allCheckedCart(context,isChecked){
+    let promiseAll=[];
+    context.getters.cartList.cartInfoList.forEach(item=>{
+      let promise=context.dispatch("checkCart",{skuId:item.skuId,isChecked})
+      promiseAll.push(promise)
+    })
+    return  Promise.all(promiseAll)
+  }
+~~~
+
+# 登陆注册业务
+
+这边服务器请求都有问题
+
+~~~js
+ //用户注册
+  async getUserRegister(context, user) {
+    //这里有错误，一直显示参数格式不对
+    let result = await reqUserRegister(user);
+    if (result.code == 200) {
+      return "ok";
+    } else {
+      return Promise.reject(new Error("注册参数错误"));
+    }
+  },
+  //用户登录 服务器返回不了东西
+  async userLogin(context, user) {
+    let result = await reqUserLogin(user);
+    if(result.code==200){
+      console.log("用户登录这请求成功了")
+    }else{
+      Promise.reject(new Error('用户登录这服务器有问题，返回不了token'))
+    }
+  },
+};
+~~~
+
+~~~js
+  //获取验证码
+   async getCode(){
+    //简单判断一下
+     try {
+       const {phone} =this
+       phone&& (await this.$store.dispatch("getCode",phone))
+       //将code属性值变为仓库中的验证码
+       this.code=this.$store.state.user.code
+     } catch (error) {
+       alert(error.message)
+     }
+    },
+    //用户注册
+    async userRegister(){
+      //这边202提示参数错误，暂时不清楚什么情况,zanshi写个如果成功失败都跳
+      try {
+        const {phone,code,password,password1}=this;
+       (phone&&code&&password==password1) &&await this.$store.dispatch("getUserRegister",{phone,code,password})
+       this.$router.push('./login')
+      } catch (error) {
+        this.$router.push('./login')
+        console.error(error.message)
+      }
+
+    }
+~~~
+
+~~~js
+ async userLogin(){
+       try {
+        const {phone,password}=this;
+           //&&的断路
+        (phone&&password)&&await this.$store.dispatch("userLogin",{phone,password})
+        this.$router.push('./home')
+       } catch (error) {
+        this.$router.push('./home')
+        console.error(error.message)
+       }
+
+      }
+~~~
+

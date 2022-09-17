@@ -1,7 +1,7 @@
 //配置路由
 import Home from "../pages/Home/HomeContainer.vue";
 import Login from "../pages/Login/LoginContainer.vue";
-import Register from "../pages/Register/RegisterContaier.vue";
+import Register from "../pages/Register/RegisterContainer.vue";
 import Search from "../pages/Search/search/index.vue";
 import Detail from "../pages/Detail"
 import AddCartSuccess from "../pages/AddCartSuccess/index.vue"
