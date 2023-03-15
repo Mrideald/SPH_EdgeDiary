@@ -354,8 +354,8 @@
 </template>
 
 <script>
-import ImageList from "./ImageList/ImageList";
-import Zoom from "./Zoom/Zoom";
+import ImageList from "./ImageList";
+import Zoom from "./Zoom";
 import { mapGetters, mapActions } from "vuex";
 
 export default {

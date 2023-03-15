@@ -420,6 +420,10 @@ const p = Promise.all([p1, p2, p3]);
 
 > 可以理解为小仓库，api有commit【提交mutations修改state】 getters【计算属性】 dispatch【派发action】,state【当前仓库数据】 可以在action中调用
 
+用mapstate获取仓库数据的时候写成对象模式好一点
+
+addressInfo:state=>state.trade.address
+
 
 
 ## 一些陌生且常用的api
@@ -442,6 +446,10 @@ const array1 = [1, 30, 39, 29, 10, 13];
 console.log(array1.every(isBelowThreshold));
 // expected output: true,有一个不小于40都是false
 ~~~
+
+找出数组里面满足条件的某个值
+
+array.find((item)=>item..条件)
 
 
 
@@ -537,27 +545,26 @@ routes:[
 
 ## 三种路由传参
 
-1. 字符串形式
+传参又分为声明式和编程式，声明式就是router-link :to   这里只介绍编程式
 
-   ```
-   this.$router.push("/search/"+this.keyword+"?k="+this.keyword.toUpperCase())
-   ```
-
-2. 模板字符串形式
-
-   ```
-   this.$router.push(`/search/${this.keyword}?k=${this.keyword.toUpperCase()}`)
-   ```
-
-    
-
-3. 对象形式
-
-   ```
-   this.$router.push({name:'search',params:{keyword:this.keyword},query:{k:this.keyword.toUpperCase()}})
-   ```
-
-   
+~~~
+if(result.code==200){
+        this.orderId=result.data
+        //query方法  query传参地址后面都有问号
+        //query直接指明传参
+        //this.$router.push({path:'/pay',query:{orderId:this.orderId}})
+        //query地址拼接传参
+        this.$router.push('/pay?orderId='+this.orderId)
+        //params方法  先要在要跳转的路由配置占位符 :orderId  path:'/pay/:orderId',
+        //this.$router.push({path:'/pay?orderId='+this.orderId})
+        //params直接指明传参
+        //this.$router.push({name:'Pay',params:{orderId:this.orderId}})
+        //params地址拼接传参
+        //this.$router.push(`/pay/${this.orderId}`)
+      }else{
+        alert(result.message)
+      }
+~~~
 
 ## 面试题
 
@@ -2056,17 +2063,26 @@ return Promise.all(promiseAll)
 这边服务器请求都有问题
 
 ~~~js
- //用户注册
+//用户注册
   async getUserRegister(context, user) {
-    //这里有错误，一直显示参数格式不对
+      //将服务器需要的账号密码还有验证码带过去
     let result = await reqUserRegister(user);
     if (result.code == 200) {
       return "ok";
     } else {
-      return Promise.reject(new Error("注册参数错误"));
+      return Promise.reject(new Error("faile"));
     }
   },
-  //用户登录 服务器返回不了东西
+  //用户登录 
+  //用户登录之后服务器派发token给用户，用户拿着token才能访问内容，不过token用vuex获取并存储 
+  是因为js被加载后是在内存中执行的，js被加载后，其实就是将js代码执行了一遍，在内存中创建了所有js文件中的变量。当需要执行某个方法时其实是在内存中执行该函数。
+
+  当页面进行刷新的时候，之前创建的所有变量内存都会被释放，重新加载js代码，变量重新赋值。所以有些通过用户操作后保存在vuex中的信息就会丢失。
+  
+  解决办法就是存储在本地或者cookie
+  vuex存储的数据不是持久化的
+  
+  
   async userLogin(context, user) {
     let result = await reqUserLogin(user);
     if(result.code==200){
@@ -2076,6 +2092,13 @@ return Promise.all(promiseAll)
     }
   },
 };
+  token就像是身份证 登录成功后就像进入游乐园，要先把身份证给管理员才能开始玩，所以把token写在请求头带给服务器 才能在进入之后发起其他请求返回数据
+  
+  
+//把token带给服务器
+if(store.state.user.token){
+config.headers.token=store.state.user.token;
+}
 ~~~
 
 ~~~js
@@ -2091,18 +2114,15 @@ return Promise.all(promiseAll)
        alert(error.message)
      }
     },
-    //用户注册
-    async userRegister(){
-      //这边202提示参数错误，暂时不清楚什么情况,zanshi写个如果成功失败都跳
+//用户注册
+     async userRegister(){
       try {
-        const {phone,code,password,password1}=this;
-       (phone&&code&&password==password1) &&await this.$store.dispatch("getUserRegister",{phone,code,password})
-       this.$router.push('./login')
+        const {phone,code,password1,password}=this;
+       (phone&&code&&password1==password) && await                 this.$store.dispatch("getUserRegister",{phone,password,code})
+        this.$router.push('/login')
       } catch (error) {
-        this.$router.push('./login')
-        console.error(error.message)
+        alert(error.message)
       }
-
     }
 ~~~
 
@@ -2120,4 +2140,271 @@ return Promise.all(promiseAll)
 
       }
 ~~~
+
+
+
+# 持久化存储token
+
+封装一个token.js 不封装直接写也行
+
+~~~
+export const setToken=(token)=>{
+ localStorage.setItem("TOKEN",token)
+}
+
+export const getToken=()=>{
+  return localStorage.getItem("TOKEN")
+}
+
+
+存在本地存储里面 登录请求的时候使用
+~~~
+
+~~~
+import {setToken,getToken} from '@/utils/token'
+
+....
+
+//用户登录
+  async userLogin(context, user) {
+    let result = await reqUserLogin(user);
+    if(result.code==200){
+      setToken(result.data.token)
+      context.commit("USERLOGIN",result.data.token)
+    }else{
+      Promise.reject(new Error('faile'))
+    }
+ },
+ ....
+ 
+ const mutations = {
+ 
+   USERLOGIN(state,token){
+    state.token=token
+  },
+ }
+ 
+ const state={
+  token:getToken(),
+ }
+~~~
+
+存在问题是获取用户信息的请求只在主页派发了action 只能在主页刷新后还能在 在别的地方就没了
+
+# 退出登录
+
+~~~js
+//退出登录
+logout(){
+ this.$store.dispatch('logOutInfo')
+ this.$router.push('/home')
+}
+
+//退出登录
+async logOutInfo(context){
+let result=await reqLogout()
+if(result.code===200){
+  context.commit('LOGOUT')
+  return "ok"
+}else{
+  Promise.reject(new Error("faile"))
+}
+}
+
+const mutations = {
+    LOGOUT(state){
+    state.token="",
+    state.userInfo={},
+    removeToken()
+  }
+};
+
+const state = {
+  code: "",
+  token:getToken(),
+  userInfo:{}
+};
+~~~
+
+# 路由守卫
+
+已经登录之后就不能在跳转登录页面 等等 需要用到路由守卫 解决了限制路由跳转问题以及刷新之后没用户信息的问题
+
+~~~js
+//全局守卫：前置守卫(在路由跳转之间进行判断
+Router.beforeEach(async(to,from,next)=>{
+  //to:可以获取你要跳转到哪的路由信息
+  //from ：可以获取到你从那个路由而来的信息
+  //next 放行函数 next（）放行
+  //获取token和用户信息 userinfo永远是空对象 一直是真
+  const token=store.state.user.token
+  const userInfo=store.state.user.userInfo
+  //已登录的情况
+  if(token){
+  //如果你登录了还想去login 那么就跳转home
+   if(to.path=='/login'||to.path=='/register'){
+    next('/home')
+   }else{
+    //如果有用户信息直接放行
+    if(userInfo.name){
+       next()
+    }else{
+      try {
+        //如果没有用户信息 先向服务器发请求 再放行
+       await store.dispatch('getUserInfo')
+        next()
+      } catch (error) {
+       //如果上面的也获取不到 那应该是token失效了 token失效，从新登录 一般时间很久没登陆了会失效
+       //清除token
+      await store.dispatch('logOutInfo')  //退出登录
+       next('/login')
+      }
+    }
+   }
+  }
+  //未登录的情况 待开发
+  else{
+    next()
+  }
+})
+
+~~~
+
+# 全局使用api
+
+类似全局总线
+
+*//统一api 全部引入 可以直接使用 在后面*
+
+~~~
+//统一api 全部引入 可以直接使用 在后面
+import * as API from '@/api/index'
+
+new Vue({
+  render: h => h(App),
+  store,
+  router,
+  beforeCreate(){
+    Vue.prototype.$bus=this//安装全局事件总线
+    //统一接口api文件夹里面的全部函数请求
+    //统一引入
+    //给原型添加一个$api 这个原型上的属性下面的实例也可以使用
+    //例如this.$API.reqAddOrUpdateShopCart()
+    Vue.prototype.$API=API
+    }
+}).$mount('#app')
+~~~
+
+后续使用
+
+~~~
+ //提交订单
+   async submitOrder() {
+      //接收俩参数 第一个是tradeNo 第二个是data 包含六个参数
+      let { tradeNo } = this.orderInfo;
+      let data = {
+        consignee: this.userDefaultAddress.consignee,
+        consigneeTel: this.userDefaultAddress.phoneNum,
+        deliveryAddress: this.userDefaultAddress.fullAddress,
+        paymentWay: "ONLINE",//支付方式
+        orderComment: this.msg,
+        orderDetailList: this.orderInfo.detailArrayList
+      };
+      //发请求
+      let result=await this.$API.reqSubmitOrder(tradeNo,data);
+      //可以成功发请求 后续就是处理订单号的问题了
+      console.log(result);
+    },
+~~~
+
+这是不用vuex中转的方法 直接就是服务器对接组件
+
+数据存储在本组件的data中
+
+
+
+# 生成二维码的插件
+
+~~~
+npm i qrcode
+~~~
+
+使用：
+
+~~~
+import QRCode from 'qrcode'
+
+//弹出框
+async open() {
+//生成二维码 返回图片地址  根据服务器返回的codeUrl生成二维码
+let url=await QRCode.toDataURL(this.payInfo.codeUrl)
+后面使用这个地址就好了 用img的src什么的
+}
+~~~
+
+获取支付二维码后 要一直向服务器发请求询问订单支付状态
+
+# element ui 按需引入
+
+先安装个东西
+
+~~~
+
+npm i element-ui -S
+
+npm install babel-plugin-component -D
+~~~
+
+修改babel配置文件
+
+~~~
+module.exports = {
+  presets: ["@vue/cli-plugin-babel/preset"],
+  plugins: [
+    [
+      "component",
+      {
+        libraryName: "element-ui",
+        styleLibraryName: "theme-chalk",
+      },
+    ],
+  ],
+};
+ds
+
+presets是已经存在的 添加一个plugin就行  配置文件发生改变重启项目
+~~~
+
+~~~
+引入的方式
+import { Button, Select } from 'element-ui';
+
+注册方式
+1.Vue.component(Button.name, Button);
+2.Vue.use(Button)
+  Vue.use(Select)
+3.注册在原型上
+Vue.prototype.$msgbox = MessageBox;
+Vue.prototype.$alert = MessageBox.alert;
+Vue.prototype.$confirm = MessageBox.confirm;
+~~~
+
+~~~
+真正使用的时候
+
+//局部引入elementui
+import {Button,MessageBox} from 'element-ui'
+
+
+//使用局部引入的element ui 第一种注册方式
+//Vue.component(Button.name,Button)
+//第二种注册方式
+Vue.use(Button)
+//第三种注册方式 挂在原型上
+Vue.prototype.$msgbox = MessageBox;
+Vue.prototype.$alert = MessageBox.alert;
+
+~~~
+
+
 

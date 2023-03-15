@@ -1,4 +1,5 @@
-import { reqGetCode, reqUserRegister, reqUserLogin } from "/src/api/index";
+import { reqGetCode, reqUserRegister, reqUserLogin,reqGetUserInfo,reqLogout } from "/src/api/index";
+import {setToken,getToken,removeToken} from '@/utils/token'
 
 //登录和注册
 const actions = {
@@ -7,39 +8,70 @@ const actions = {
     let result = await reqGetCode(phone);
     if (result.code == 200) {
       context.commit("GETCODE", result.data);
-      return "ok";
+      return 100;
     } else {
       Promise.reject(new Error("faile"));
     }
   },
   //用户注册
   async getUserRegister(context, user) {
-    //这里有错误，一直显示参数格式不对
     let result = await reqUserRegister(user);
     if (result.code == 200) {
       return "ok";
     } else {
-      return Promise.reject(new Error("注册参数错误"));
+      return Promise.reject(new Error("faile"));
     }
   },
-  //用户登录 服务器返回不了东西
+  //用户登录
   async userLogin(context, user) {
     let result = await reqUserLogin(user);
     if(result.code==200){
-      console.log("用户登录这请求成功了")
+      setToken(result.data.token)
+      context.commit("USERLOGIN",result.data.token)
     }else{
-      Promise.reject(new Error('用户登录这服务器有问题，返回不了token'))
+      Promise.reject(new Error('faile'))
     }
   },
+  //获取用户信息
+  async getUserInfo(context){
+    let result =await reqGetUserInfo();
+    if(result.code==200){
+      context.commit("GETUSERINFO",result.data)
+      return "ok"
+    }
+  },
+  //退出登录
+  async logOutInfo(context){
+    let result=await reqLogout()
+    if(result.code===200){
+      context.commit('LOGOUT')
+      return "ok"
+    }else{
+      Promise.reject(new Error('faile'))
+    }
+  }
 };
 
 const mutations = {
   GETCODE(state, code) {
     state.code = code;
   },
+  USERLOGIN(state,token){
+    state.token=token
+  },
+  GETUSERINFO(state,userInfo){
+    state.userInfo=userInfo
+  },
+  LOGOUT(state){
+    state.token="",
+    state.userInfo={},
+    removeToken()
+  }
 };
 const state = {
   code: "",
+  token:getToken(),
+  userInfo:{}
 };
 const getters = {};
 export default {

@@ -11,12 +11,12 @@
 </template>
 
 <script>
-import ListContainer from "./ListContainer/ListContainer";
-import RecommendContainer from "./Recommend/RecommendContainer";
-import RankContainer from "./RankContainer/RankContainer";
-import LikeContainer from "./LikeContainer/LikeContainer";
-import FloorContainer from "./FloorContainer/FloorContainer";
-import BrandContainer from "./BrandContainer/BrandContainer";
+import ListContainer from "./ListContainer";
+import RecommendContainer from "./Recommend";
+import RankContainer from "./RankContainer";
+import LikeContainer from "./LikeContainer";
+import FloorContainer from "./FloorContainer";
+import BrandContainer from "./BrandContainer";
 import { mapState } from "vuex";
 export default {
   name: "HomeContainer",
@@ -31,6 +31,7 @@ export default {
   //挂载完毕向服务器发请求获取数据
   mounted() {
     this.$store.dispatch("home/floorList");
+    this.$store.dispatch("getUserInfo")
   },
    computed:{
     ...mapState({

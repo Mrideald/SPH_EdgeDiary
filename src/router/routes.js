@@ -1,12 +1,59 @@
 //配置路由
-import Home from "../pages/Home/HomeContainer.vue";
-import Login from "../pages/Login/LoginContainer.vue";
-import Register from "../pages/Register/RegisterContainer.vue";
-import Search from "../pages/Search/search/index.vue";
+import Home from "../pages/Home";
+import Login from "../pages/Login";
+import Register from "../pages/Register";
+import Search from "../pages/Search/search";
 import Detail from "../pages/Detail"
-import AddCartSuccess from "../pages/AddCartSuccess/index.vue"
-import ShopCart from "../pages/ShopCart/index.vue"
+import AddCartSuccess from "../pages/AddCartSuccess"
+import ShopCart from "../pages/ShopCart"
+import Trade from "../pages/Trade"
+import Pay from "../pages/Pay"
+import PaySuccess from "../pages/PaySuccess"
+import Center from "../pages/Center"
+//引入二级路由
+import MyOrder from '../pages/Center/myOrder'
+import GroupOrder from '../pages/Center/groupOrder'
 export default [
+  {
+   path:'/center',
+   component:Center,
+   meta: { showFoot: true },
+   //子路由
+   children:[
+    {
+      //二级路由不用带杠
+      path:'myorder',
+      component:MyOrder,
+    },
+    {
+      //二级路由不用带杠
+      path:'grouporder',
+      component:GroupOrder,
+    },
+    {
+      //重定向，在项目跑起来的时候访问
+      path:'/center',
+      redirect:'/center/myorder'
+    }
+   ]
+  },
+  {
+   path:'/paysuccess',
+   name:'paySuccess',
+   component:PaySuccess,
+   meta: { showFoot: true }
+  },
+  {
+    path:'/pay',
+    name:'Pay',
+    component:Pay,
+    meta: { showFoot: true }
+  },
+  {
+    path:'/trade',
+    component:Trade,
+    meta: { showFoot: true }
+  },
   {
     path:"/shopCart",
     component:ShopCart,

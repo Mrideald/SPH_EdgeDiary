@@ -61,5 +61,33 @@ export const reqGetCode=(phone)=>requests({url:`/user/passport/sendCode/${phone}
 //用户注册 /user/passport/register  post
 export const reqUserRegister=(data)=>requests({url:'/user/passport/register',data,method:'post'})
 
-//用户登录
-export const reqUserLogin=(data)=>requests({url:'/api/user/passport/login',data:data,method:'post'})
+//用户登录 传入数据和get不一样 data：data
+export const reqUserLogin=(data)=>requests({url:'/user/passport/login',data:data,method:'post'})
+
+//写获取用户信息的接口 去home里面发起渲染到主页
+export const reqGetUserInfo=()=>requests({url:'/user/passport/auth/getUserInfo',method:'get'})
+
+//退出登录接口
+export const reqLogout=()=>requests({url:'/user/passport/logout',method:'get'})
+
+//获取用户地址信息
+export const reqAddressInfo=()=>requests({url:'/user/userAddress/auth/findUserAddressList',method:"get"})
+
+//获取商品页信息
+export const reqOrderInfo=()=>requests({url:'/order/auth/trade',method:'get'})
+
+// //获取用户地址信息 这边写的是mock地址 为了完整还是使用真正的请求地址
+// export const reqAddressInfo=()=>mockRequests.get("/address")
+
+// //获取商品页信息/api/order/auth/trade
+
+// export const reqOrderInfo=()=>mockRequests.get("/order/info")
+
+//提交订单 /api/order/auth/submitOrder?tradeNo={tradeNo} method:post
+export const reqSubmitOrder=(tradeNo,data)=>requests({url:`/order/auth/submitOrder?tradeNo=${tradeNo}`,data:data,method:"post"})
+
+//获取支付信息/api/payment/weixin/createNative/{orderId}
+export const reqPayInfo=(orderId)=>requests({url:`/payment/weixin/createNative/${orderId}`,method:'get'})
+
+//获取订单支付状态 /api/payment/weixin/queryPayStatus/{orderId}
+export const reqPayStatus=(orderId)=>requests({url:`/payment/weixin/queryPayStatus/${orderId}`,method:'get'})

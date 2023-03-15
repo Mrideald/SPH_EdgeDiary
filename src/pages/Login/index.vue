@@ -81,13 +81,12 @@
         (phone&&password)&&await this.$store.dispatch("userLogin",{phone,password})
         this.$router.push('./home')
        } catch (error) {
-        this.$router.push('./home')
-        console.error(error.message)
+        alert(error.message)
        }
       }
     }
   }
-  
+
 </script>
 
 <style lang="less" scoped>

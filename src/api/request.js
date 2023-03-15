@@ -20,9 +20,16 @@ const requests =axios.create({
 //请求拦截器 可以在请求发起之前处理一些业务
 requests.interceptors.request.use((config)=>{
     //config  配置对象，对象里面有个属性很重要，headers请求头
-   //给请求头添加一个字段
+   //给请求头添加一个字段uuid
+   if(store.state.detail.uuid_token){
    config.headers.userTempId=store.state.detail.uuid_token
-    //start 进度条开始
+   }
+    //把token带给服务器
+   if(store.state.user.token){
+    config.headers.token=store.state.user.token;
+   }
+
+   //start 进度条开始
     nprogress.start();
     return config;
 })

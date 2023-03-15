@@ -19,12 +19,12 @@
       </div>
       <div class="content">
         <label>登录密码:</label>
-        <input type="text" placeholder="请输入你的登录密码">
+        <input type="text" placeholder="请输入你的登录密码" v-model="password1">
         <span class="error-msg">错误提示信息</span>
       </div>
       <div class="content">
         <label>确认密码:</label>
-        <input type="text" placeholder="请输入确认密码">
+        <input type="text" placeholder="请输入确认密码" v-model="password">
         <span class="error-msg">错误提示信息</span>
       </div>
       <div class="controls">
@@ -67,9 +67,9 @@
         //收集验证码
         code:'',
         //密码
-        password:'',
-        //确认密码
         password1:'',
+        //确认密码
+        password:'',
         //是否同意
         agree:true
       };
@@ -88,15 +88,13 @@
      }
     },
     //用户注册
-    async userRegister(){
-      //这边202提示参数错误，暂时不清楚什么情况,zanshi写个如果成功失败都跳
+     async userRegister(){
       try {
-        const {phone,code,password,password1}=this;
-       (phone&&code&&password==password1) &&await this.$store.dispatch("getUserRegister",{phone,code,password})
-       this.$router.push('./login')
+        const {phone,code,password1,password}=this;
+       (phone&&code&&password1==password) && await this.$store.dispatch("getUserRegister",{phone,password,code})
+        this.$router.push('/login')
       } catch (error) {
-        this.$router.push('./login')
-        console.error(error.message)
+        alert(error.message)
       }
 
     }

@@ -4,7 +4,7 @@
     <div class="swiper-wrapper">
       <div
         class="swiper-slide swiper"
-        v-for="(carousel,index) in List"
+        v-for="(carousel,index) in list"
         :key="index"
       >
         <img :src="carousel.imgUrl" />
@@ -51,7 +51,7 @@ export default {
       },
     },
   },
-  props: ["List"],
+  props: ["list"],
 };
 </script>
 

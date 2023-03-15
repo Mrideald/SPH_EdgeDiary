@@ -31,23 +31,8 @@
               <img :src="list.imgUrl" />
             </div>
             <div class="floorBanner">
-              <div class="swiper-container" id="floor2Swiper">
-                <div class="swiper-wrapper">
-                  <div
-                    class="swiper-slide"
-                    v-for="carouselList in list.carouselList"
-                    :key="carouselList.id"
-                  >
-                    <img :src="carouselList.imgUrl" />
-                  </div>
-                </div>
-                <!-- 如果需要分页器 -->
-                <div class="swiper-pagination"></div>
-
-                <!-- 如果需要导航按钮 -->
-                <div class="swiper-button-prev"></div>
-                <div class="swiper-button-next"></div>
-              </div>
+              <!-- 轮播图全局组件 -->
+              <CarouselContainer :list="list.carouselList"/>
             </div>
             <div class="split">
               <span class="floor-x-line"></span>
@@ -87,25 +72,6 @@ export default {
   },
   //因为此处参数父组件已经传过来了不会再是异步获取了，所以不必使用watch监听和$nextTick
   mounted() {
-    new Swiper(".swiper-container", {
-      //循环
-      loop: true,
-      // 如果需要分页器
-      pagination: {
-        el: ".swiper-pagination",
-        //点小点可以实现切换
-        clickable: true,
-      },
-      // 如果需要前进后退按钮
-      navigation: {
-        nextEl: ".swiper-button-next",
-        prevEl: ".swiper-button-prev",
-      },
-      // 如果需要滚动条
-      scrollbar: {
-        el: ".swiper-scrollbar",
-      },
-    });
   },
   props: ["list"],
 };
