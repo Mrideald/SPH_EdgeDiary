@@ -43,6 +43,7 @@ VueRouter.prototype.replace = function (location, resolve, reject) {
 };
 // 对外暴露vuerouter类的实例
 const Router = new VueRouter({
+  //mode:'history', 要与服务器配合才行
   //配置路由
   routes,
   //滚动行为
@@ -85,7 +86,14 @@ Router.beforeEach(async(to,from,next)=>{
   }
   //未登录的情况 待开发
   else{
-    next()
+    //未登录的情况 不能去交易相关，不能去支付相关  不能去个人中心 未登录不能去上面这些路由 去的不是上面这些路由 放行
+    let toPath=to.path;
+    if(toPath.indexOf('/trade')!=-1||toPath.indexOf('/pay')!=-1||toPath.indexOf('/center')!=-1){
+      next('/login?redirect='+to.path)  //路由传参 把之前本来想去的存一下 等登录之后跳转这个地方
+    }else{
+      next()
+    }
+
   }
 })
 

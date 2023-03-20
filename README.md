@@ -1,6 +1,6 @@
 
 
-## 尚品汇项目笔记
+## shan项目笔记
 
 ## 补充知识
 
@@ -454,6 +454,34 @@ array.find((item)=>item..条件)
 
 
 **assets下的是所有组件共用的静态资源**
+
+
+
+## 动态修改data中某个对象或者数组
+
+因为vue2监测数据的方式是Object.defineProperty(),修改一个对象或者数组需要用的get set
+
+vue2动态修改对象中某个数据
+
+1. 使用Vue.set(object, key, value)
+
+```js
+Vue.set(this.obj, 'name', 'Tom')
+```
+
+2. 使用Vue.delete(object, key)
+
+```js
+Vue.delete(this.obj, 'name')
+```
+
+3. 使用Vue.prototype.$set
+
+```js
+this.$set(this.obj, 'name', 'Tom')
+```
+
+this.$set(this.form,'agree',*event*.target.checked)
 
 
 
@@ -2264,7 +2292,13 @@ Router.beforeEach(async(to,from,next)=>{
   }
   //未登录的情况 待开发
   else{
-    next()
+    //未登录的情况 不能去交易相关，不能去支付相关  不能去个人中心 未登录不能去上面这些路由 去的不是上面这些路由 放行
+    let toPath=to.path;
+    if(toPath.indexOf('/trade')!=-1||toPath.indexOf('/pay')!=-1||toPath.indexOf('/center')!=-1){
+      next('/login?redirect='+to.path)  //路由传参 把之前本来想去的存一下 等登录之后跳转这个地方
+    }else{
+      next()
+    }
   }
 })
 
@@ -2407,4 +2441,207 @@ Vue.prototype.$alert = MessageBox.alert;
 ~~~
 
 
+
+# 路由独享守卫
+
+~~~
+
+去某个组件只能从哪走
+{
+    path:'/pay',
+    name:'Pay',
+    component:Pay,
+    meta: { showFoot: true },
+    
+    beforeEnter:(to,from,next)=>{
+        //去支付页面只能从交易页面去 从其他地方去的返回原地方
+        if(from.path=='/trade'){
+           next()  //如果是从shopcart来的 就放行
+        }else{
+          //中断当前导航 如果游览器url改变了 会回到from的地址从哪来回哪去
+          next(false)
+      }
+    }
+  },
+  ......
+  {
+    path:'/trade',
+    component:Trade,
+    meta: { showFoot: true },
+    
+    beforeEnter: (to, from, next) => {
+      //去交易页面只能从购物车去 从其他地方去的返回原地方
+      if(from.path=='/shopCart'){
+         next()  //如果是从shopcart来的 就放行
+      }else{
+        //中断当前导航 如果游览器url改变了 会回到from的地址从哪来回哪去
+        next(false)
+      }
+    }
+  },
+~~~
+
+# 组件内守卫
+
+这个用的挺少的 基本可以写的都可以在路由独享守卫写
+
+~~~
+//组件内守卫
+  beforeRouteEnter(to, from, next) {
+    // 在渲染该组件的对应路由被 confirm 前调用
+    // 不！能！获取组件实例 `this`  undefined
+    // 因为当守卫执行前，组件实例还没被创建
+    //也可以写在路由独享守卫中 这个用的少
+    if (from.path == "/pay") {
+      next();
+    } else {
+      next(false);
+    }
+  },
+  beforeRouteUpdate(to, from, next) {
+    // 在当前路由改变，但是该组件被复用时调用
+    // 举例来说，对于一个带有动态参数的路径 /foo/:id，在 /foo/1 和 /foo/2 之间跳转的时候，
+    // 由于会渲染同样的 Foo 组件，因此组件实例会被复用。而这个钩子就会在这个情况下被调用。
+    // 可以访问组件实例 `this`
+    console.log("12313131311313",this);
+  },
+
+  beforeRouteLeave(to, from, next) {
+    // 导航离开该组件的对应路由时调用
+    // 可以访问组件实例 `this`
+    next();
+  },
+~~~
+
+
+
+# 图片懒加载
+
+下载插件
+
+~~~
+npm i vue-lazyload@1.3.3  使用国内镜像下载一般快一点 cnpm开头
+vue2用1.3.3版本 
+
+使用
+//引入插件懒加载
+import VueLazyload from 'vue-lazyload'
+//引入加载中的动态图
+import xiaoxin from './assets/images/xiaoxin.gif'
+//注册插件
+//也可以直接注册Vue.use(VueLazyload) 下面这种写法是加点配置
+Vue.use(VueLazyload,{
+    loading:xiaoxin
+})
+使用的使用在引入图片地址的前面用v-lazy="url" 
+<img v-lazy="goods.defaultImg" />
+~~~
+
+~~~
+//随便写的原理 了解vue.use(插件,{})可以配置参数传值 了解插件如何操作dom
+//Vue插件一定暴露一个对象
+let myPlugins={
+
+}
+//option占位 给用户写的
+myPlugins.install=function(Vue,options){
+    console.log(Vue,options,'myplugins');
+}
+
+export default myPlugins
+~~~
+
+~~~
+ <div class="content">
+        <label>手机号:</label>
+        <input type="text" placeholder="请输入你的手机号" v-model="phone" />
+        <span class="error-msg">错误提示信息</span>
+      </div>
+      <div class="content">
+        <label>验证码:</label>
+        <input type="text" placeholder="请输入验证码" v-model="code" />
+        <button style="height: 38px; width: 100px" @click="getCode">
+          获取验证码
+        </button>
+        <span class="error-msg">错误提示信息</span>
+      </div>
+      <div class="content">
+        <label>登录密码:</label>
+        <input
+          type="text"
+          placeholder="请输入你的登录密码"
+          v-model="password1"
+        />
+        <span class="error-msg">错误提示信息</span>
+      </div>
+      <div class="content">
+        <label>确认密码:</label>
+        <input type="text" placeholder="请输入确认密码" v-model="password" />
+        <span class="error-msg">错误提示信息</span>
+      </div>
+      <div class="controls">
+        <input name="m1" type="checkbox" />
+        <span>同意协议并注册《尚品汇用户协议》</span>
+        <span class="error-msg">错误提示信息</span>
+      </div>
+      <div class="btn">
+        <button @click="userRegister">完成注册</button>
+      </div>
+~~~
+
+# 路由懒加载
+
+当打包构建应用时，JavaScript 包会变得非常大，影响页面加载。如果我们能把不同路由对应的组件分割成不同的代码块，然后当路由被访问的时候才加载对应组件，这样就会更加高效。
+
+
+
+简单来说就是按需引入代码块 不用直接import引入了
+
+
+
+第一步写一个引入的函数
+
+const foo=()=>{
+
+  console.log(1111,'1111');
+
+  return import('../pages/Home')
+
+}
+
+第二步在组件那写
+
+   {
+
+​      path: "/home",
+
+​      component: foo,
+
+​      meta: { showFoot: true },
+
+​    },
+
+
+
+简化：{
+
+​      path: "/home",
+
+​      component: ()=>import('../pages/Home'),
+
+​      meta: { showFoot: true },
+
+​    },
+
+# 打包
+
+npm run build 
+
+项目打包后，代码都是经过压缩加密的，如果运行时报错，错误信息无法准确得知是哪里的代码报错，有了map就可以像未加密的代码一样准确输出是哪一行那一列有错
+
+所以该文件如果项目不需要是可以除掉
+
+vue.config.js配置
+
+productionSourceMap:false
 
